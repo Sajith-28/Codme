@@ -1,18 +1,20 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { motion } from 'framer-motion';
 
-export default function DustParticles() {
+const DustParticles = memo(function DustParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animationFrameId: number;
     let particles: Particle[] = [];
+    let lastTime = 0;
+    const fpsInterval = 1000 / 60; // Cap at 60 FPS for stability
 
     class Particle {
       x: number;
@@ -26,11 +28,11 @@ export default function DustParticles() {
       constructor() {
         this.x = Math.random() * canvas!.width;
         this.y = Math.random() * canvas!.height;
-        this.size = Math.random() * 2 + 0.5;
-        this.depth = Math.random() * 3 + 1; // Used for parallax and size scaling
-        this.speedX = (Math.random() - 0.5) * (0.3 / this.depth);
-        this.speedY = (Math.random() - 0.5) * (0.3 / this.depth);
-        this.opacity = Math.random() * 0.5 + 0.1;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.depth = Math.random() * 3 + 1;
+        this.speedX = (Math.random() - 0.5) * (0.25 / this.depth);
+        this.speedY = (Math.random() - 0.5) * (0.25 / this.depth);
+        this.opacity = Math.random() * 0.4 + 0.1;
       }
 
       update() {
@@ -49,19 +51,19 @@ export default function DustParticles() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size / this.depth, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity / this.depth})`;
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
         ctx.fill();
       }
     }
 
     const init = () => {
       if (!canvas) return;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.scale(dpr, dpr);
+      
       particles = [];
-      // High density: ensuring at least 5000 particles as requested
-      const densityCount = Math.floor((canvas.width * canvas.height) / 400);
+      const densityCount = Math.floor((window.innerWidth * window.innerHeight) / 600);
       const particleCount = Math.max(5000, densityCount);
       
       for (let i = 0; i < particleCount; i++) {
@@ -69,14 +71,21 @@ export default function DustParticles() {
       }
     };
 
-    const animate = () => {
+    const animate = (time: number) => {
+      animationFrameId = requestAnimationFrame(animate);
+      
+      const elapsed = time - lastTime;
+      if (elapsed < fpsInterval) return;
+      lastTime = time - (elapsed % fpsInterval);
+
       if (!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      
+      // Batch drawing for performance
       particles.forEach((particle) => {
         particle.update();
         particle.draw();
       });
-      animationFrameId = requestAnimationFrame(animate);
     };
 
     const handleResize = () => {
@@ -84,7 +93,7 @@ export default function DustParticles() {
     };
 
     init();
-    animate();
+    animationFrameId = requestAnimationFrame(animate);
 
     window.addEventListener('resize', handleResize);
 
@@ -101,7 +110,9 @@ export default function DustParticles() {
       animate={{ opacity: 1 }}
       transition={{ duration: 1.5 }}
       className="fixed inset-0 pointer-events-none z-[5]"
-      style={{ filter: 'blur(0.4px)' }}
+      style={{ filter: 'blur(0.3px)', width: '100vw', height: '100vh' }}
     />
   );
-}
+});
+
+export default DustParticles;

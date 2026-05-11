@@ -109,7 +109,21 @@
     background: rgba(255,255,255,0.055);
     color: rgba(255,255,255,0.82);
     transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
-    will-change: transform;
+    will-change: transform, background, border-color;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .lang-card,
+  .problem-card {
+    will-change: transform, opacity, border-color, box-shadow;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  aside.glass-panel,
+  header.ide-topbar {
+    contain: layout style;
   }
 
   .icon-button {
