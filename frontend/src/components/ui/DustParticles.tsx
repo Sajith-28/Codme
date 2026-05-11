@@ -20,8 +20,6 @@ const DustParticles = memo(function DustParticles() {
     class Particle {
       x: number;
       y: number;
-      baseX: number;
-      baseY: number;
       size: number;
       speedX: number;
       speedY: number;
@@ -31,46 +29,47 @@ const DustParticles = memo(function DustParticles() {
       constructor() {
         this.x = Math.random() * canvas!.width;
         this.y = Math.random() * canvas!.height;
-        this.baseX = this.x;
-        this.baseY = this.y;
         this.size = Math.random() * 1.5 + 0.5;
         this.depth = Math.random() * 3 + 1;
-        this.speedX = (Math.random() - 0.5) * (0.2 / this.depth);
-        this.speedY = (Math.random() - 0.5) * (0.2 / this.depth);
+        // High speed "Heavy Air" movement (primarily right and down)
+        this.speedX = (Math.random() * 2 + 1) / (this.depth * 0.5);
+        this.speedY = (Math.random() * 0.5 + 0.2) / (this.depth * 0.5);
         this.opacity = Math.random() * 0.4 + 0.1;
       }
 
       update(mouseX: number, mouseY: number) {
-        // Natural movement
         this.x += this.speedX;
         this.y += this.speedY;
 
-        // Interaction logic
+        // Interaction logic using squared distance for optimization
         const dx = mouseX - this.x;
         const dy = mouseY - this.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const forceRadius = 120;
+        const distanceSq = dx * dx + dy * dy;
+        const forceRadius = 150;
+        const forceRadiusSq = forceRadius * forceRadius;
 
-        if (distance < forceRadius) {
+        if (distanceSq < forceRadiusSq) {
+          const distance = Math.sqrt(distanceSq);
           const force = (forceRadius - distance) / forceRadius;
           const directionX = dx / distance;
           const directionY = dy / distance;
-          // Pushing away effect
-          this.x -= directionX * force * 4;
-          this.y -= directionY * force * 4;
+          // Impact effect
+          this.x -= directionX * force * 8;
+          this.y -= directionY * force * 8;
         }
 
         // Screen wrap
-        if (this.x > window.innerWidth) this.x = 0;
-        else if (this.x < 0) this.x = window.innerWidth;
+        if (this.x > window.innerWidth) this.x = -10;
+        else if (this.x < -10) this.x = window.innerWidth;
         
-        if (this.y > window.innerHeight) this.y = 0;
-        else if (this.y < 0) this.y = window.innerHeight;
+        if (this.y > window.innerHeight) this.y = -10;
+        else if (this.y < -10) this.y = window.innerHeight;
       }
 
       draw() {
         if (!ctx) return;
         ctx.beginPath();
+        // Slightly elongated particles for speed effect
         ctx.arc(this.x, this.y, this.size / this.depth, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity / this.depth})`;
         ctx.fill();
