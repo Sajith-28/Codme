@@ -22,10 +22,11 @@ const javaPatterns: DebugHint[] = [
 const pythonPatterns: DebugHint[] = [
   { category: 'compile', pattern: /SyntaxError/i, title: 'Syntax Error', explanation: 'Python found something it doesn\'t understand in your code structure.', suggestion: 'Check for missing colons after if/for/while/def, mismatched parentheses, or incorrect indentation.' },
   { category: 'compile', pattern: /IndentationError/i, title: 'Indentation Error', explanation: 'Python uses spaces/tabs to define code blocks, and yours are inconsistent.', suggestion: 'Use exactly 4 spaces for each indentation level. Don\'t mix tabs and spaces.' },
+  { category: 'runtime', pattern: /RecursionError/i, title: 'Maximum Recursion Depth Exceeded', explanation: 'Your recursive function is calling itself too many times without stopping.', suggestion: 'Check your base case. Ensure the problem size reduces in each recursive call.' },
   { category: 'runtime', pattern: /NameError/i, title: 'Undefined Variable', explanation: 'You\'re using a variable name that hasn\'t been created yet.', suggestion: 'Check for typos. Make sure you assigned a value to the variable before using it.' },
   { category: 'runtime', pattern: /TypeError/i, title: 'Type Error', explanation: 'You\'re doing an operation on a value that doesn\'t support it.', suggestion: 'Check if you need to convert types (e.g., int() or str()). Make sure you\'re not mixing incompatible types.' },
-  { category: 'runtime', pattern: /IndexError/i, title: 'Index Out of Range', explanation: 'You\'re trying to access a list position that doesn\'t exist.', suggestion: 'Check your list length with len(). Remember lists are 0-indexed.' },
-  { category: 'runtime', pattern: /ValueError/i, title: 'Value Error', explanation: 'A function received a value it can\'t handle.', suggestion: 'Check if you\'re passing the right type of data. For int(), make sure the string is actually a number.' },
+  { category: 'runtime', pattern: /IndexError/i, title: 'Index Out of Range', explanation: 'You\'re trying to access a list position that doesn\'t exist.', suggestion: 'Check your list length with len(). Remember lists are 0-indexed. This often happens in loops over arrays/lists.' },
+  { category: 'runtime', pattern: /ValueError/i, title: 'Value Error', explanation: 'A function received a value it can\'t handle.', suggestion: 'Check if you pass the right type of data. If using int(), ensure the string is a valid number.' },
   { category: 'runtime', pattern: /KeyError/i, title: 'Dictionary Key Not Found', explanation: 'You\'re trying to access a dictionary key that doesn\'t exist.', suggestion: 'Use dict.get(key, default) instead, or check if the key exists with "if key in dict".' },
   { category: 'runtime', pattern: /ZeroDivisionError/i, title: 'Division by Zero', explanation: 'You\'re dividing a number by zero, which is mathematically undefined.', suggestion: 'Add a check: if the divisor is 0, handle it separately before dividing.' },
 ];
@@ -34,15 +35,17 @@ const cPatterns: DebugHint[] = [
   { category: 'compile', pattern: /implicit declaration of function/i, title: 'Missing Function Declaration', explanation: 'You\'re using a function that hasn\'t been declared or included.', suggestion: 'Add the correct #include header, or declare the function before main().' },
   { category: 'compile', pattern: /expected ';'/i, title: 'Missing Semicolon', explanation: 'C needs a semicolon at the end of every statement.', suggestion: 'Add a semicolon (;) at the indicated line.' },
   { category: 'compile', pattern: /undeclared identifier/i, title: 'Undeclared Variable', explanation: 'You\'re using a variable that hasn\'t been declared.', suggestion: 'Declare the variable with its type before using it (e.g., int x;).' },
-  { category: 'runtime', pattern: /segmentation fault/i, title: 'Segmentation Fault', explanation: 'Your program tried to access memory it\'s not allowed to touch.', suggestion: 'Check for: accessing array out of bounds, using uninitialized pointers, or dereferencing NULL.' },
+  { category: 'runtime', pattern: /segmentation fault/i, title: 'Segmentation Fault (Memory Error)', explanation: 'Your program tried to access memory it\'s not allowed to touch.', suggestion: 'This usually happens due to: accessing an array out of bounds, using uninitialized pointers, or dereferencing a NULL pointer.' },
+  { category: 'runtime', pattern: /stack overflow/i, title: 'Stack Overflow', explanation: 'Your program used too much stack memory, usually due to deep recursion.', suggestion: 'Check your recursive function base cases. Consider using iteration for very deep computations.' },
   { category: 'compile', pattern: /expected declaration/i, title: 'Code Outside Function', explanation: 'You have executable code outside of any function.', suggestion: 'Move your code inside main() or another function.' },
 ];
 
 const cppPatterns: DebugHint[] = [
   ...cPatterns,
-  { category: 'compile', pattern: /no match for 'operator/i, title: 'Operator Not Supported', explanation: 'You\'re using an operator with types that don\'t support it.', suggestion: 'Check if you need to include the right header or convert types.' },
-  { category: 'compile', pattern: /no member named/i, title: 'Member Not Found', explanation: 'The object/class doesn\'t have the method or property you\'re trying to use.', suggestion: 'Check the correct method name. You might need a different header or namespace.' },
-  { category: 'runtime', pattern: /out_of_range/i, title: 'Out of Range Access', explanation: 'You\'re accessing a container element that doesn\'t exist.', suggestion: 'Use .at() for bounds-checked access, or verify the index before accessing.' },
+  { category: 'compile', pattern: /no match for 'operator/i, title: 'Operator Not Supported', explanation: 'You\'re using an operator with types that don\'t support it.', suggestion: 'Check if you need to include the right header (like <string> or <iostream>) or convert types.' },
+  { category: 'compile', pattern: /no member named/i, title: 'Member Not Found', explanation: 'The object/class doesn\'t have the method or property you\'re trying to use.', suggestion: 'Check the correct method name. Ensure you included the right header for the class.' },
+  { category: 'runtime', pattern: /out_of_range/i, title: 'Out of Range Access', explanation: 'You\'re accessing a container element that doesn\'t exist.', suggestion: 'Use .at() for bounds-checked access, or verify the index before accessing with [].' },
+  { category: 'compile', pattern: /undefined reference to/i, title: 'Linker Error', explanation: 'Your code compiled but the linker couldn\'t find the implementation of a function.', suggestion: 'Ensure all files are included in the project and function names match their definitions exactly.' },
 ];
 
 export const DEBUG_PATTERNS: Record<string, DebugHint[]> = {

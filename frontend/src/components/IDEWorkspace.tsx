@@ -493,7 +493,10 @@ export default function IDEWorkspace() {
       return;
     }
 
+    // Clear locally for instant feedback
+    clearOutput();
     setTestResults([]);
+    
     socketRef.current.send(JSON.stringify({
       action: 'execute',
       language,
@@ -683,29 +686,34 @@ export default function IDEWorkspace() {
         )}
       </AnimatePresence>
 
-      <div className="h-full w-full grid grid-rows-[56px_1fr_32px] gap-2 p-2">
-        <header className="glass-panel ide-topbar flex items-center justify-between px-4 relative z-50">
-          <div className="flex items-center gap-3 min-w-0">
-            <button onClick={() => navigate('/select')} className="icon-button" title="Back to Selection">
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <div className="h-9 w-9 rounded-lg border border-neon-blue/40 bg-neon-blue/10 grid place-items-center shadow-[0_0_24px_rgba(0,240,255,0.2)]">
-              <Code2 className="h-5 w-5 text-neon-blue" />
+      <div className="h-full w-full grid grid-rows-[64px_1fr_32px] gap-2 p-2">
+        <header className="glass-panel ide-topbar flex items-center justify-between px-6 relative z-50 rounded-2xl border-white/15">
+          <div className="flex items-center gap-5 min-w-0">
+            <div className="flex items-center gap-3 pr-4 border-r border-white/10">
+              <button onClick={() => navigate('/select')} className="icon-button h-10 w-10" title="Back to Selection">
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <div className="h-10 w-10 rounded-xl border border-neon-blue/40 bg-neon-blue/10 grid place-items-center shadow-[0_0_24px_rgba(0,240,255,0.25)]">
+                <Code2 className="h-6 w-6 text-neon-blue" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] leading-none text-white/40 uppercase tracking-[0.3em] font-bold">Workspace</span>
+                <span className="text-xl font-black tracking-tighter text-white uppercase leading-none mt-1">Cod<span className="text-neon-blue">me</span></span>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-4">
               <LanguageDropdown
                 value={language}
                 onChange={(val) => changeLanguage(val)}
               />
-              <div className="h-4 w-[1px] bg-white/10" />
+              <div className="h-6 w-[1px] bg-white/10" />
               <div className="flex flex-col">
-                <span className={`text-[10px] leading-none uppercase tracking-widest font-bold ${statusTone}`}>{connectionState}</span>
-                <span className="text-[10px] text-white/50 truncate max-w-[120px] font-mono">{connectionMessage}</span>
-              </div>
-              <div className="h-4 w-[1px] bg-white/10" />
-              <div className="flex flex-col">
-                <span className="text-[10px] leading-none text-white/40 uppercase tracking-widest font-bold">Workspace</span>
-                <span className="text-sm font-black tracking-tighter text-white uppercase">Cod<span className="text-neon-blue">me</span></span>
+                <div className="flex items-center gap-1.5">
+                  <div className={`h-1.5 w-1.5 rounded-full ${connectionState === 'connected' ? 'bg-neon-green shadow-[0_0_8px_#39ff14]' : 'bg-red-400 shadow-[0_0_8px_#f87171] animate-pulse'}`} />
+                  <span className={`text-[10px] leading-none uppercase tracking-widest font-black ${statusTone}`}>{connectionState}</span>
+                </div>
+                <span className="text-[10px] text-white/50 truncate max-w-[160px] font-mono mt-1 opacity-70 italic">{connectionMessage}</span>
               </div>
             </div>
           </div>

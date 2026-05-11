@@ -36,7 +36,11 @@ export const useStore = create<StoreState>((set) => ({
   input: '',
   setInput: (input) => set({ input }),
   output: [],
-  addOutput: (out) => set((state) => ({ output: [...state.output, out] })),
+  addOutput: (out) => set((state) => {
+    const newOutput = [...state.output, out];
+    // Cap output at 1000 items to prevent memory leaks and UI lag during heavy execution
+    return { output: newOutput.slice(-1000) };
+  }),
   clearOutput: () => set({ output: [] }),
   status: 'Idle',
   setStatus: (status) => set({ status }),

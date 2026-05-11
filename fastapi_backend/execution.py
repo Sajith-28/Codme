@@ -217,8 +217,12 @@ async def run_process(
         )
     except asyncio.TimeoutError:
         try:
-            proc.kill()
-        except ProcessLookupError:
+            if IS_WINDOWS:
+                # Force kill the process tree on Windows to prevent orphaned children
+                os.system(f"taskkill /F /T /PID {proc.pid} >nul 2>&1")
+            else:
+                proc.kill()
+        except Exception:
             pass
         message = f"\nExecution timed out after {int(timeout)}s"
         stderr_chunks.append(message)
