@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { PROBLEMS, LEARNING_PATHS, DIFFICULTY_COLORS } from '../data/problems';
 import type { Difficulty, Topic } from '../data/problems';
-import { Code2, ArrowLeft, Filter, Clock, Tag, CheckCircle2, BookOpen, Zap } from 'lucide-react';
+import { Code2, ArrowLeft, Filter, Clock, Tag, CheckCircle2, BookOpen, Zap, Layers } from 'lucide-react';
+import CustomSelect from './CustomSelect';
 
 const ALL_TOPICS: Topic[] = ['basics','arrays','strings','math','sorting','searching','recursion','dp','stacks','queues','linked-lists','greedy','hashing'];
 const DIFFICULTIES: Difficulty[] = ['beginner','easy','medium','hard'];
@@ -28,6 +29,16 @@ export default function ProblemsPage() {
     });
   }, [diffFilter, topicFilter]);
 
+  const diffOptions = useMemo(() => [
+    { label: 'All Difficulties', value: 'all' },
+    ...DIFFICULTIES.map(d => ({ label: d.charAt(0).toUpperCase() + d.slice(1), value: d }))
+  ], []);
+
+  const topicOptions = useMemo(() => [
+    { label: 'All Topics', value: 'all' },
+    ...ALL_TOPICS.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1).replace('-', ' '), value: t }))
+  ], []);
+
   if (!token) { navigate('/'); return null; }
 
   return (
@@ -40,14 +51,17 @@ export default function ProblemsPage() {
         <div className="flex items-center gap-4">
           <button onClick={() => navigate('/select')} className="icon-button"><ArrowLeft className="h-4 w-4" /></button>
           <div className="flex items-center gap-2">
-            <Code2 className="h-5 w-5 text-neon-blue" />
-            <span className="text-lg font-black tracking-tighter"><span className="font-syncopate">COD</span><span className="font-michroma text-neon-blue">ME</span></span>
+            <div className="h-8 w-8 rounded-lg border border-neon-blue/40 bg-neon-blue/10 grid place-items-center">
+              <Code2 className="h-4 w-4 text-neon-blue" />
+            </div>
+            <span className="text-lg font-black tracking-tighter"><span className="font-syncopate text-white">COD</span><span className="font-michroma text-neon-blue">ME</span></span>
           </div>
-          <span className="text-xs font-mono text-white/30 uppercase tracking-widest hidden md:block">Practice Arena</span>
+          <div className="h-4 w-[1px] bg-white/10 mx-2 hidden md:block" />
+          <span className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em] font-bold hidden md:block">Practice Arena</span>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setView('problems')} className={`panel-tab ${view==='problems'?'active':''}`}><BookOpen className="h-3.5 w-3.5"/>Problems</button>
-          <button onClick={() => setView('path')} className={`panel-tab ${view==='path'?'active':''}`}><Zap className="h-3.5 w-3.5"/>Learning Path</button>
+        <div className="flex items-center gap-3 p-1 bg-white/5 rounded-xl border border-white/5">
+          <button onClick={() => setView('problems')} className={`px-4 py-2 rounded-lg text-xs font-mono flex items-center gap-2 transition-all ${view==='problems'?'bg-white/10 text-white shadow-lg':'text-white/40 hover:text-white'}`}><BookOpen className="h-3.5 w-3.5"/>Problems</button>
+          <button onClick={() => setView('path')} className={`px-4 py-2 rounded-lg text-xs font-mono flex items-center gap-2 transition-all ${view==='path'?'bg-white/10 text-white shadow-lg':'text-white/40 hover:text-white'}`}><Zap className="h-3.5 w-3.5"/>Learning Path</button>
         </div>
       </header>
 
@@ -55,13 +69,21 @@ export default function ProblemsPage() {
         {view === 'path' ? (
           /* Learning Path View */
           <div className="max-w-3xl mx-auto space-y-6">
-            <motion.h2 initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="text-2xl font-black font-mono tracking-tight text-white mb-6">
-              🎯 Guided Learning Path — <span className="text-neon-blue capitalize">{language}</span>
-            </motion.h2>
+            <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="mb-8">
+              <h2 className="text-3xl font-black font-mono tracking-tight text-white mb-2">
+                🎯 Guided Learning Path
+              </h2>
+              <p className="text-white/40 font-mono text-xs uppercase tracking-widest">Mastering <span className="text-neon-blue">{language}</span> step-by-step</p>
+            </motion.div>
+            
             {LEARNING_PATHS.map((stage, si) => (
-              <motion.div key={stage.stage} initial={{opacity:0,x:-30}} animate={{opacity:1,x:0}} transition={{delay:si*0.1}} className="glass-panel p-5">
-                <h3 className="text-lg font-bold font-mono text-white mb-3 flex items-center gap-2">
-                  <span className="text-2xl">{stage.icon}</span> {stage.stage}
+              <motion.div key={stage.stage} initial={{opacity:0,x:-30}} animate={{opacity:1,x:0}} transition={{delay:si*0.1}} className="glass-panel p-6 border-white/10 hover:border-white/20 transition-colors">
+                <h3 className="text-lg font-bold font-mono text-white mb-4 flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shadow-inner">{stage.icon}</span> 
+                  <div>
+                    <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] leading-none mb-1">Stage {si + 1}</p>
+                    {stage.stage}
+                  </div>
                 </h3>
                 <div className="grid gap-2">
                   {stage.problems.map(pid => {
@@ -69,10 +91,10 @@ export default function ProblemsPage() {
                     if (!prob) return null;
                     return (
                       <button key={pid} onClick={() => navigate(`/problems/${pid}`)}
-                        className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-neon-blue/30 transition-all duration-200 text-left group">
+                        className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-neon-blue/30 transition-all duration-200 text-left group">
                         <div className="flex items-center gap-3">
                           {solved.has(pid) ? <CheckCircle2 className="h-4 w-4 text-neon-green"/> : <div className="h-4 w-4 rounded-full border border-white/20"/>}
-                          <span className="text-sm font-mono text-white/80 group-hover:text-white">{prob.title}</span>
+                          <span className="text-sm font-mono text-white/70 group-hover:text-white">{prob.title}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border" style={{color:DIFFICULTY_COLORS[prob.difficulty], borderColor:DIFFICULTY_COLORS[prob.difficulty]+'40'}}>{prob.difficulty}</span>
@@ -89,19 +111,34 @@ export default function ProblemsPage() {
           /* Problems Grid View */
           <div className="max-w-6xl mx-auto">
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <Filter className="h-4 w-4 text-white/40" />
-              <select value={diffFilter} onChange={e => setDiffFilter(e.target.value as any)}
-                className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-white outline-none focus:border-neon-blue/50">
-                <option value="all">All Difficulties</option>
-                {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-              <select value={topicFilter} onChange={e => setTopicFilter(e.target.value as any)}
-                className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-white outline-none focus:border-neon-blue/50">
-                <option value="all">All Topics</option>
-                {ALL_TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-              <span className="text-xs font-mono text-white/30 ml-auto">{filtered.length} problems · {solved.size} solved</span>
+            <div className="flex flex-wrap items-center gap-4 mb-8 bg-white/5 p-4 rounded-2xl border border-white/5">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
+                <Filter className="h-3.5 w-3.5 text-neon-blue" />
+                <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest font-bold">Filters</span>
+              </div>
+              
+              <CustomSelect
+                value={diffFilter}
+                onChange={(val) => setDiffFilter(val as any)}
+                options={diffOptions}
+                placeholder="Difficulty"
+                icon={<Layers className="h-3.5 w-3.5" />}
+              />
+
+              <CustomSelect
+                value={topicFilter}
+                onChange={(val) => setTopicFilter(val as any)}
+                options={topicOptions}
+                placeholder="Topic"
+                icon={<Tag className="h-3.5 w-3.5" />}
+              />
+
+              <div className="h-8 w-[1px] bg-white/10 mx-2 hidden md:block" />
+              
+              <span className="text-[10px] font-mono text-white/30 ml-auto flex items-center gap-4">
+                <span className="flex items-center gap-1.5"><div className="h-1 w-1 rounded-full bg-neon-blue"/> {filtered.length} Problems</span>
+                <span className="flex items-center gap-1.5"><div className="h-1 w-1 rounded-full bg-neon-green"/> {solved.size} Solved</span>
+              </span>
             </div>
 
             {/* Problem Cards */}
