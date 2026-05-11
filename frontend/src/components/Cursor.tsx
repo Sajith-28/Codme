@@ -60,23 +60,39 @@ export default function Cursor() {
   return (
     <>
       <motion.div
-        className="fixed top-0 left-0 -ml-1.5 -mt-1.5 w-3 h-3 bg-neon-blue rounded-full pointer-events-none z-50 mix-blend-screen shadow-[0_0_18px_rgba(0,240,255,0.8)]"
+        className="fixed top-0 left-0 pointer-events-none z-[9999]"
         style={{ x: dotX, y: dotY }}
-        animate={{ scale: hovering ? 0.25 : 1 }}
-      />
+      >
+        <motion.div
+          animate={{ scale: hovering ? 1.2 : 1, rotate: hovering ? -10 : 0 }}
+          className="relative"
+        >
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
+            <path 
+              d="M8 4V24.5858C8 25.1205 8.64645 25.3882 9.02426 25.0104L13.8787 20.1559C14.0662 19.9684 14.3205 19.8631 14.5858 19.8631H22C22.5348 19.8631 22.8025 19.2166 22.4247 18.8388L8.42474 4.83883C8.18185 4.59594 8 4.34794 8 4Z" 
+              fill="white" 
+              stroke="black" 
+              strokeWidth="1.5" 
+              strokeLinejoin="round"
+            />
+          </svg>
+        </motion.div>
+      </motion.div>
+
       <motion.div
-        className="fixed top-0 left-0 -ml-[22px] -mt-[22px] w-11 h-11 border border-neon-blue rounded-full pointer-events-none z-50 mix-blend-screen"
+        className="fixed top-0 left-0 -ml-[20px] -mt-[20px] w-10 h-10 border border-white/20 rounded-full pointer-events-none z-[9998]"
         style={{ x: ringX, y: ringY }}
         animate={{
-          scale: hovering ? 1.75 : 1,
-          opacity: hovering ? 0.85 : 0.42,
-          boxShadow: hovering ? '0 0 34px rgba(57,255,20,0.45)' : '0 0 20px rgba(0,240,255,0.35)',
+          scale: hovering ? 1.8 : 1,
+          opacity: hovering ? 0.6 : 0.2,
+          borderColor: hovering ? 'rgba(0, 240, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)',
+          boxShadow: hovering ? '0 0 30px rgba(0, 240, 255, 0.2)' : '0 0 15px rgba(255, 255, 255, 0.1)',
         }}
       />
       {bursts.map((burst) => (
         <motion.div
           key={burst.id}
-          className="fixed pointer-events-none z-50 rounded-full border border-neon-green"
+          className="fixed pointer-events-none z-[9997] rounded-full border border-white/40"
           initial={{ x: burst.x - 8, y: burst.y - 8, width: 16, height: 16, opacity: 0.9, scale: 0.4 }}
           animate={{ x: burst.x - 28, y: burst.y - 28, width: 56, height: 56, opacity: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
