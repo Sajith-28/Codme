@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import Cursor from './components/Cursor';
 
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const LanguageSelect = lazy(() => import('./components/LanguageSelect'));
@@ -11,8 +10,6 @@ const ProblemSolve = lazy(() => import('./components/ProblemSolve'));
 
 function AppContent() {
   const location = useLocation();
-  const showCursor = location.pathname !== '/';
-
   return (
     <div className="min-h-screen bg-background text-white font-sans overflow-hidden relative">
       <Toaster
@@ -28,7 +25,6 @@ function AppContent() {
         }}
       />
       <div className="grid-background"></div>
-      {showCursor && <Cursor />}
       <Suspense fallback={
         <div className="min-h-screen grid place-items-center bg-[#080a10]">
           <div className="flex flex-col items-center gap-4">
