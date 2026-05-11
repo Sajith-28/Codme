@@ -5,6 +5,7 @@ import { Spotlight } from "./ui/spotlight"
 import { Terminal } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import AuthModal from './AuthModal';
+import DustParticles from './ui/DustParticles';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -21,13 +22,15 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen w-full bg-black/[0.96] relative overflow-hidden flex flex-col md:flex-row">
+      <DustParticles />
+      
       <Spotlight
         className="-top-40 left-0 md:left-60 md:-top-20"
         fill="white"
       />
       
       {/* Left content */}
-      <div className="flex-1 w-full p-6 pt-20 md:p-12 lg:p-24 relative z-10 flex flex-col justify-center items-center md:items-start text-center md:text-left min-h-[50vh] md:min-h-screen">
+      <div className="flex-1 w-full p-6 pt-20 md:p-12 lg:p-24 relative z-20 flex flex-col justify-center items-center md:items-start text-center md:text-left min-h-[50vh] md:min-h-screen">
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 tracking-tighter flex items-center">
           <span className="font-syncopate">COD</span>
           <span className="font-michroma text-neon-blue neon-text-blue">ME</span>
@@ -48,7 +51,7 @@ export default function LandingPage() {
       </div>
 
       {/* Right content */}
-      <div className="flex-1 relative w-full h-[50vh] md:h-screen min-h-[400px]">
+      <div className="flex-1 relative z-20 w-full h-[50vh] md:h-screen min-h-[400px]">
         <SplineScene 
           scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
           className="w-full h-full"
