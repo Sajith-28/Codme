@@ -221,9 +221,57 @@ export default function ProblemSolve() {
             {activePanel === 'results' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">Test Results</span>
-                  <span className={`text-[10px] font-mono uppercase tracking-widest ${status.includes('Accepted') ? 'text-neon-green' : 'text-white/50'}`}>{status}</span>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">Execution Summary</span>
                 </div>
+
+                <AnimatePresence>
+                  {(results.length > 0 || isBusy) && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }} 
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 mb-6 relative overflow-hidden"
+                    >
+                      <div className="relative z-10 flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                           <div className="flex flex-col">
+                             <span className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Overall Verdict</span>
+                             <span className={`text-xl font-black font-syncopate tracking-tighter ${status.includes('Accepted') ? 'text-neon-green neon-text-green' : status.includes('Error') || status.includes('FAIL') ? 'text-red-400' : 'text-neon-blue'}`}>
+                               {isBusy ? 'TESTING...' : status.includes('Accepted') ? 'ACCEPTED' : results.some(r => r.verdict === 'FAIL') ? 'WRONG ANSWER' : 'PROCESSED'}
+                             </span>
+                           </div>
+                           <div className="h-12 w-12 rounded-full border-2 border-white/5 flex items-center justify-center relative">
+                             <svg className="h-full w-full -rotate-90">
+                               <circle 
+                                 cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="2" 
+                                 className="text-white/5" 
+                               />
+                               <motion.circle 
+                                 cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="3" 
+                                 strokeDasharray="125.6"
+                                 initial={{ strokeDashoffset: 125.6 }}
+                                 animate={{ strokeDashoffset: 125.6 - (125.6 * (results.length / problem.testCases.length)) }}
+                                 className={results.some(r => r.verdict === 'FAIL') ? 'text-red-400' : 'text-neon-blue'}
+                               />
+                             </svg>
+                             <span className="absolute text-[10px] font-bold font-mono">{Math.round((results.length / problem.testCases.length) * 100)}%</span>
+                           </div>
+                        </div>
+                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                           <motion.div 
+                             initial={{ width: 0 }}
+                             animate={{ width: `${(results.length / problem.testCases.length) * 100}%` }}
+                             className={`h-full ${results.some(r => r.verdict === 'FAIL') ? 'bg-red-400' : 'bg-neon-blue shadow-[0_0_10px_rgba(0,240,255,0.5)]'}`}
+                           />
+                        </div>
+                        <div className="flex justify-between text-[9px] font-mono uppercase tracking-widest text-white/30">
+                           <span>{results.filter(r => r.verdict === 'PASS').length} Passed</span>
+                           <span>{results.length} / {problem.testCases.length} Tests</span>
+                        </div>
+                      </div>
+                      <div className="absolute top-0 right-0 -mr-4 -mt-4 h-24 w-24 bg-neon-blue/5 rounded-full blur-3xl" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 
                 {results.length === 0 && !isBusy && (
                    <div className="text-center py-10 text-white/20 text-xs font-mono">
