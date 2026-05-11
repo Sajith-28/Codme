@@ -11,7 +11,7 @@ const ProblemSolve = lazy(() => import('./components/ProblemSolve'));
 
 function AppContent() {
   const location = useLocation();
-  const showLandingCursor = location.pathname === '/';
+  const showCursor = location.pathname !== '/';
 
   return (
     <div className="min-h-screen bg-background text-white font-sans overflow-hidden relative">
@@ -28,7 +28,7 @@ function AppContent() {
         }}
       />
       <div className="grid-background"></div>
-      {showLandingCursor && <Cursor />}
+      {showCursor && <Cursor />}
       <Suspense fallback={
         <div className="min-h-screen grid place-items-center bg-[#080a10]">
           <div className="flex flex-col items-center gap-4">
