@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 
 const DustParticles = memo(function DustParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef({ x: -1000, y: -1000 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -14,11 +15,13 @@ const DustParticles = memo(function DustParticles() {
     let animationFrameId: number;
     let particles: Particle[] = [];
     let lastTime = 0;
-    const fpsInterval = 1000 / 60; // Cap at 60 FPS for stability
+    const fpsInterval = 1000 / 60;
 
     class Particle {
       x: number;
       y: number;
+      baseX: number;
+      baseY: number;
       size: number;
       speedX: number;
       speedY: number;
@@ -28,22 +31,41 @@ const DustParticles = memo(function DustParticles() {
       constructor() {
         this.x = Math.random() * canvas!.width;
         this.y = Math.random() * canvas!.height;
+        this.baseX = this.x;
+        this.baseY = this.y;
         this.size = Math.random() * 1.5 + 0.5;
         this.depth = Math.random() * 3 + 1;
-        this.speedX = (Math.random() - 0.5) * (0.25 / this.depth);
-        this.speedY = (Math.random() - 0.5) * (0.25 / this.depth);
+        this.speedX = (Math.random() - 0.5) * (0.2 / this.depth);
+        this.speedY = (Math.random() - 0.5) * (0.2 / this.depth);
         this.opacity = Math.random() * 0.4 + 0.1;
       }
 
-      update() {
+      update(mouseX: number, mouseY: number) {
+        // Natural movement
         this.x += this.speedX;
         this.y += this.speedY;
 
-        if (this.x > canvas!.width) this.x = 0;
-        else if (this.x < 0) this.x = canvas!.width;
+        // Interaction logic
+        const dx = mouseX - this.x;
+        const dy = mouseY - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const forceRadius = 120;
+
+        if (distance < forceRadius) {
+          const force = (forceRadius - distance) / forceRadius;
+          const directionX = dx / distance;
+          const directionY = dy / distance;
+          // Pushing away effect
+          this.x -= directionX * force * 4;
+          this.y -= directionY * force * 4;
+        }
+
+        // Screen wrap
+        if (this.x > window.innerWidth) this.x = 0;
+        else if (this.x < 0) this.x = window.innerWidth;
         
-        if (this.y > canvas!.height) this.y = 0;
-        else if (this.y < 0) this.y = canvas!.height;
+        if (this.y > window.innerHeight) this.y = 0;
+        else if (this.y < 0) this.y = window.innerHeight;
       }
 
       draw() {
@@ -81,9 +103,10 @@ const DustParticles = memo(function DustParticles() {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       
-      // Batch drawing for performance
+      const { x: mouseX, y: mouseY } = mouseRef.current;
+      
       particles.forEach((particle) => {
-        particle.update();
+        particle.update(mouseX, mouseY);
         particle.draw();
       });
     };
@@ -92,13 +115,19 @@ const DustParticles = memo(function DustParticles() {
       init();
     };
 
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+
     init();
     animationFrameId = requestAnimationFrame(animate);
 
     window.addEventListener('resize', handleResize);
+    window.addEventListener('mousemove', handleMouseMove);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
