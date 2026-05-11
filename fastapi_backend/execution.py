@@ -64,6 +64,7 @@ def resolve_tool(tool: str) -> Optional[str]:
             os.path.join("C:\\Program Files", "CodeBlocks", "MinGW", "bin", f"{tool}.exe"),
             os.path.join("C:\\msys64", "mingw64", "bin", f"{tool}.exe"),
             os.path.join("C:\\mingw64", "bin", f"{tool}.exe"),
+            os.path.join("C:\\MinGW", "bin", f"{tool}.exe"),
         ])
         if preferred:
             return preferred

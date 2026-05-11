@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { PROBLEMS, DIFFICULTY_COLORS } from '../data/problems';
 import { analyzeError, analyzeComplexity } from '../data/debugPatterns';
-import { ArrowLeft, Play, RotateCw, Send, Bug, CheckCircle2, XCircle, Clock, Tag, ChevronRight, PanelBottom, Gauge, BrainCircuit, Terminal, Code2, Activity, HardDrive } from 'lucide-react';
+import { ArrowLeft, Play, RotateCw, Send, Bug, CheckCircle2, XCircle, Clock, Tag, ChevronRight, PanelBottom, Gauge, BrainCircuit, Terminal, Code2, Activity, HardDrive, Plus, SplitSquareHorizontal } from 'lucide-react';
 import LanguageDropdown from './LanguageDropdown';
 
 const wsBase = import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;

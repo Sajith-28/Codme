@@ -415,7 +415,15 @@ export default function IDEWorkspace() {
 
   const changeLanguage = useCallback((nextLanguage: SupportedLanguage) => {
     setLanguage(nextLanguage);
-    const nextFiles = createDefaultFiles(nextLanguage);
+    const saved = localStorage.getItem(projectStorageKey(nextLanguage));
+    let nextFiles: ProjectFile[];
+    try {
+      const parsed = saved ? JSON.parse(saved) as ProjectFile[] : null;
+      nextFiles = (parsed && filesMatchLanguage(parsed, nextLanguage)) ? parsed : createDefaultFiles(nextLanguage);
+    } catch {
+      nextFiles = createDefaultFiles(nextLanguage);
+    }
+    
     setFiles(nextFiles);
     setActiveFileId(nextFiles[0].id);
     setSplitFileId(null);
