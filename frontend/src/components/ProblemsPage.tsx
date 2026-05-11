@@ -42,12 +42,12 @@ export default function ProblemsPage() {
   if (!token) { navigate('/'); return null; }
 
   return (
-    <div className="problems-shell min-h-screen w-full flex flex-col relative overflow-hidden">
+    <div className="problems-shell h-screen w-full flex flex-col relative overflow-hidden">
       <div className="lang-orb lang-orb-1" />
       <div className="lang-orb lang-orb-2" />
 
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 relative z-10">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 relative z-10 shrink-0">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate('/select')} className="icon-button"><ArrowLeft className="h-4 w-4" /></button>
           <div className="flex items-center gap-2">
@@ -65,7 +65,7 @@ export default function ProblemsPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto custom-scrollbar p-4 md:p-8 relative z-10">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10">
         {view === 'path' ? (
           /* Learning Path View */
           <div className="max-w-3xl mx-auto space-y-6">
