@@ -56,16 +56,19 @@ export default function DustParticles() {
     }
 
     const init = () => {
+      if (!canvas) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       particles = [];
-      const particleCount = Math.floor((canvas.width * canvas.height) / 15000);
+      // Increased density for better visibility
+      const particleCount = Math.floor((canvas.width * canvas.height) / 8000);
       for (let i = 0; i < particleCount; i++) {
         particles.push(new Particle());
       }
     };
 
     const animate = () => {
+      if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach((particle) => {
         particle.update();
@@ -94,9 +97,9 @@ export default function DustParticles() {
       ref={canvasRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 2 }}
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{ filter: 'blur(0.5px)' }}
+      transition={{ duration: 1.5 }}
+      className="fixed inset-0 pointer-events-none z-[5]"
+      style={{ filter: 'blur(0.4px)' }}
     />
   );
 }

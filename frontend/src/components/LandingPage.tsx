@@ -21,11 +21,15 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-black/[0.96] relative overflow-hidden flex flex-col md:flex-row">
+    <div className="min-h-screen w-full relative overflow-hidden flex flex-col md:flex-row">
+      {/* Background layer */}
+      <div className="absolute inset-0 bg-black/[0.96] z-0" />
+      
+      {/* Cinematic layer */}
       <DustParticles />
       
       <Spotlight
-        className="-top-40 left-0 md:left-60 md:-top-20"
+        className="-top-40 left-0 md:left-60 md:-top-20 z-10"
         fill="white"
       />
       
