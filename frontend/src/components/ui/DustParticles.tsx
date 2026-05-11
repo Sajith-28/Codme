@@ -60,8 +60,10 @@ export default function DustParticles() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       particles = [];
-      // Increased density for better visibility
-      const particleCount = Math.floor((canvas.width * canvas.height) / 8000);
+      // High density: ensuring at least 5000 particles as requested
+      const densityCount = Math.floor((canvas.width * canvas.height) / 400);
+      const particleCount = Math.max(5000, densityCount);
+      
       for (let i = 0; i < particleCount; i++) {
         particles.push(new Particle());
       }
