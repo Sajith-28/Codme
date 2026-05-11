@@ -4,8 +4,8 @@ import { Editor } from '@monaco-editor/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { PROBLEMS, DIFFICULTY_COLORS } from '../data/problems';
-import { analyzeError } from '../data/debugPatterns';
-import { ArrowLeft, Play, RotateCw, Send, Bug, CheckCircle2, XCircle, Clock, Tag, ChevronRight, PanelBottom, Gauge, BrainCircuit, Terminal, Code2 } from 'lucide-react';
+import { analyzeError, analyzeComplexity } from '../data/debugPatterns';
+import { ArrowLeft, Play, RotateCw, Send, Bug, CheckCircle2, XCircle, Clock, Tag, ChevronRight, PanelBottom, Gauge, BrainCircuit, Terminal, Code2, Activity, HardDrive } from 'lucide-react';
 import LanguageDropdown from './LanguageDropdown';
 
 const wsBase = import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
@@ -27,6 +27,13 @@ export default function ProblemSolve() {
   const [activePanel, setActivePanel] = useState<'results' | 'debug' | 'stdout'>('results');
   const [debugHints, setDebugHints] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
+
+  const complexity = useMemo(() => {
+    if (results.length > 0 && !isBusy) {
+      return analyzeComplexity(editorRef.current?.getValue() || code, language);
+    }
+    return null;
+  }, [results, isBusy, language, code]);
 
   useEffect(() => {
     if (problem && !code) {
@@ -267,6 +274,25 @@ export default function ProblemSolve() {
                            <span>{results.filter(r => r.verdict === 'PASS').length} Passed</span>
                            <span>{results.length} / {problem.testCases.length} Tests</span>
                         </div>
+
+                        {complexity && (
+                          <div className="pt-3 border-t border-white/5 grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                               <span className="text-[8px] font-mono text-white/20 uppercase tracking-widest">Time Complexity</span>
+                               <div className="flex items-center gap-2 text-neon-blue font-mono text-xs">
+                                 <Activity className="h-3 w-3" />
+                                 {complexity.time}
+                               </div>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                               <span className="text-[8px] font-mono text-white/20 uppercase tracking-widest">Space Complexity</span>
+                               <div className="flex items-center gap-2 text-neon-purple font-mono text-xs">
+                                 <HardDrive className="h-3 w-3" />
+                                 {complexity.space}
+                               </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="absolute top-0 right-0 -mr-4 -mt-4 h-24 w-24 bg-neon-blue/5 rounded-full blur-3xl" />
                     </motion.div>

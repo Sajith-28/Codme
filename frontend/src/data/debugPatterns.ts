@@ -73,3 +73,61 @@ export function analyzeError(code: string, errorOutput: string, language: string
 
   return { hints, lineHint };
 }
+
+/**
+ * Heuristic-based complexity analysis for code
+ * Estimates Big O based on loops, recursion, and data structures
+ */
+export function analyzeComplexity(code: string, language: string): { time: string; space: string; explanation: string } {
+  let time = "O(1)";
+  let space = "O(1)";
+  let explanation = "The code appears to execute in constant time.";
+
+  // Remove comments for cleaner analysis
+  const cleanCode = code.replace(/\/\/.*|\/\*[\s\S]*?\*\/|#.*/g, "");
+
+  // Time Complexity Heuristics
+  const loops = (cleanCode.match(/\b(for|while)\b/g) || []).length;
+  const isPython = language === "python";
+  
+  // Check for nested loops (very simplified)
+  const nestedPatterns = isPython 
+    ? [/\bfor\b.+\n\s+for\b/g, /\bwhile\b.+\n\s+while\b/g]
+    : [/\b(for|while)\b[^{}]*\{[^{}]*\b(for|while)\b/g];
+  
+  const isNested = nestedPatterns.some(p => p.test(cleanCode));
+  const hasRecursion = isPython
+    ? /\bdef\s+(\w+)\b[\s\S]+\b\1\b\(/.test(cleanCode)
+    : /\b\w+\s+(\w+)\s*\(.*\)\s*\{[\s\S]+\b\1\b\(/.test(cleanCode);
+  
+  const hasLogPattern = /\b(mid|binary|search|low|high|>>|<<)\b/i.test(cleanCode) && cleanCode.includes("2");
+
+  if (hasRecursion) {
+    time = "O(2ⁿ)";
+    explanation = "Recursive calls detected. Complexity might be exponential depending on the base case.";
+  } else if (isNested) {
+    time = "O(n²)";
+    explanation = "Nested loops detected, suggesting quadratic time complexity.";
+  } else if (loops > 0) {
+    if (hasLogPattern) {
+      time = "O(log n)";
+      explanation = "Divide and conquer pattern detected (e.g., binary search).";
+    } else {
+      time = "O(n)";
+      explanation = "Linear loops detected. Time grows proportionally with input size.";
+    }
+  }
+
+  // Space Complexity Heuristics
+  const hasLargeStructures = isPython
+    ? /\[.*\]|\{.*\}|\bset\b/g.test(cleanCode)
+    : /\[.*\]|\b(vector|list|map|set|ArrayList|HashMap)\b/i.test(cleanCode);
+  
+  const hasDynamicAllocation = /\b(malloc|new|append|push|add)\b/i.test(cleanCode);
+
+  if (hasLargeStructures || hasDynamicAllocation) {
+    space = "O(n)";
+  }
+
+  return { time, space, explanation };
+}
