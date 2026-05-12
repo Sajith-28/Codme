@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Editor } from '@monaco-editor/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { PROBLEMS, DIFFICULTY_COLORS } from '../data/problems';
 import { analyzeError, analyzeComplexity } from '../data/debugPatterns';
-import { ArrowLeft, Play, RotateCw, Send, Bug, CheckCircle2, XCircle, Clock, Tag, ChevronRight, PanelBottom, Gauge, BrainCircuit, Terminal, Code2, Activity, HardDrive, Plus, SplitSquareHorizontal } from 'lucide-react';
+import { ArrowLeft, Play, RotateCw, Send, Bug, Clock, Tag, ChevronRight, BrainCircuit, Activity, HardDrive, SplitSquareHorizontal } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import LanguageDropdown from './LanguageDropdown';
 
 const wsBase = import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
@@ -26,7 +27,7 @@ export default function ProblemSolve() {
   const [activeTab, setActiveTab] = useState<'description' | 'info'>('description');
   const [activePanel, setActivePanel] = useState<'results' | 'debug' | 'stdout'>('results');
   const [debugHints, setDebugHints] = useState<any>(null);
-  const [showDebug, setShowDebug] = useState(false);
+  const [, setShowDebug] = useState(false);
 
   const complexity = useMemo(() => {
     if (results.length > 0 && !isBusy) {
@@ -368,7 +369,7 @@ export default function ProblemSolve() {
                                        break;
                                      }
                                    }
-                                   toast((t) => (
+                                   toast((t: { id: string }) => (
                                      <div className="flex flex-col gap-3 font-mono text-xs max-w-md">
                                        <div className="font-bold text-red-400 uppercase tracking-widest">Mismatch Found</div>
                                        <div className="space-y-2 bg-black/50 p-3 rounded-lg border border-white/10">

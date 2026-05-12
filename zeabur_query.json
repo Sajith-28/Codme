@@ -1,0 +1,1 @@
+{"query": "query { servers { nodes { id name region } } }"}

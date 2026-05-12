@@ -1,0 +1,18 @@
+{
+  "type": "web_service",
+  "name": "codme-backend",
+  "ownerId": "tea-d7ndn72qqhas73fqpdpg",
+  "repo": "https://github.com/Sajith-28/Codme",
+  "autoDeploy": "yes",
+  "branch": "main",
+  "rootDir": "fastapi_backend",
+  "serviceDetails": {
+    "env": "docker",
+    "plan": "starter",
+    "region": "oregon"
+  },
+  "envVars": [
+    { "key": "SECRET_KEY", "value": "codme-super-secret-99" },
+    { "key": "PORT", "value": "8000" }
+  ]
+}

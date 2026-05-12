@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 const LandingPage = lazy(() => import('./components/LandingPage'));
@@ -9,7 +9,6 @@ const ProblemsPage = lazy(() => import('./components/ProblemsPage'));
 const ProblemSolve = lazy(() => import('./components/ProblemSolve'));
 
 function AppContent() {
-  const location = useLocation();
   return (
     <div className="min-h-screen bg-background text-white font-sans overflow-hidden relative">
       <Toaster
