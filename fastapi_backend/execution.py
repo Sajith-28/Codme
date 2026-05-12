@@ -116,14 +116,34 @@ def safe_relative_path(file_name: str) -> Optional[str]:
     return clean_name
 
 
+def extract_java_class_name(code: str) -> str:
+    import re
+    # Remove comments to avoid false positives
+    code_no_comments = re.sub(r'//.*|/\*.*?\*/', '', code, flags=re.DOTALL)
+    # Match 'public class Name' or just 'class Name'
+    match = re.search(r'class\s+([a-zA-Z0-9_$]+)', code_no_comments)
+    if match:
+        return match.group(1)
+    return "Main"
+
+def prepare_java_code(code: str) -> str:
+    import re
+    # Remove package declaration which causes issues in flat directory structure
+    return re.sub(r'^\s*package\s+[\w.]+;\s*', '', code, flags=re.MULTILINE)
+
 def normalize_files(code: str, language: str, files: Optional[List[dict]]) -> List[dict]:
     language = normalize_language(language)
-    default_name = {
-        "java": "Main.java",
-        "python": "main.py",
-        "c": "main.c",
-        "cpp": "main.cpp"
-    }.get(language, "Main.java")
+    
+    if language == "java":
+        code = prepare_java_code(code)
+        class_name = extract_java_class_name(code)
+        default_name = f"{class_name}.java"
+    else:
+        default_name = {
+            "python": "main.py",
+            "c": "main.c",
+            "cpp": "main.cpp"
+        }.get(language, "main.txt")
 
     if not files:
         return [{"name": default_name, "content": code}]
@@ -135,6 +155,8 @@ def normalize_files(code: str, language: str, files: Optional[List[dict]]) -> Li
         if not name:
             continue
         content = str(file_info.get("content", ""))
+        if language == "java":
+            content = prepare_java_code(content)
         if name == default_name:
             has_main = True
         normalized.append({"name": name, "content": content})
@@ -310,7 +332,19 @@ async def run_single_test(
             ]
             result = await run_process(args, websocket, user_input, timeout=timeout, label=label)
         else:
-            args = ["java", "-Xmx512m", "-cp", run_dir, "Main"]
+            # Find the compiled .class file in the run_dir.
+            # We look for the first class file that was generated.
+            class_files = [f for f in os.listdir(run_dir) if f.endswith(".class")]
+            main_class = "Main"
+            if class_files:
+                # If there are multiple, we prefer one that doesn't have a '$' (avoid inner classes)
+                potential_mains = [f for f in class_files if "$" not in f]
+                if potential_mains:
+                    main_class = potential_mains[0].replace(".class", "")
+                else:
+                    main_class = class_files[0].replace(".class", "")
+            
+            args = ["java", "-Xmx512m", "-cp", run_dir, main_class]
             result = await run_process(args, websocket, user_input, timeout=timeout, label=label)
     elif language == "python":
         py_cmd = "python3" if shutil.which("python3") else "python"
