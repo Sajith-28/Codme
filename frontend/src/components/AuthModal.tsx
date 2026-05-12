@@ -20,6 +20,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   
   const { setToken } = useStore();
   const navigate = useNavigate();
+  const apiBase = import.meta.env.VITE_API_BASE_URL || '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +46,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       // 1. Health check (Fail gracefully if backend is down)
       try {
-        const healthRes = await fetch('/health', {
+        const healthRes = await fetch(`${apiBase}/health`, {
           signal: AbortSignal.timeout(3000) // 3 seconds timeout
         });
         if (!healthRes.ok) throw new Error();
@@ -59,7 +60,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         ? { email, password }
         : { email, password, username };
 
-      const response = await fetch(`${endpoint}`, {
+      const response = await fetch(`${apiBase}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
