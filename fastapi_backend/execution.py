@@ -120,18 +120,34 @@ def extract_java_class_name(code: str) -> str:
     import re
     # Remove comments to avoid false positives
     code_no_comments = re.sub(r'//.*|/\*.*?\*/', '', code, flags=re.DOTALL)
-    # Match 'public class Name' or just 'class Name'
-    match = re.search(r'class\s+([a-zA-Z0-9_$]+)', code_no_comments)
+    # Match the first top-level type declaration we can run.
+    match = re.search(r'\b(?:class|interface|enum|record)\s+([a-zA-Z0-9_$]+)', code_no_comments)
     if match:
         return match.group(1)
     return "Main"
+
+
+def extract_public_java_type_name(code: str) -> Optional[str]:
+    import re
+    code_no_comments = re.sub(r'//.*|/\*.*?\*/', '', code, flags=re.DOTALL)
+    match = re.search(r'\bpublic\s+(?:class|interface|enum|record)\s+([a-zA-Z0-9_$]+)', code_no_comments)
+    return match.group(1) if match else None
+
+
+def extract_java_main_class_name(code: str) -> Optional[str]:
+    import re
+    code_no_comments = re.sub(r'//.*|/\*.*?\*/', '', code, flags=re.DOTALL)
+    if not re.search(r'\bpublic\s+static\s+void\s+main\s*\(\s*String(?:\[\]\s+\w+|\s+\w+\s*\[\])\s*\)', code_no_comments):
+        return None
+    return extract_java_class_name(code_no_comments)
+
 
 def prepare_java_code(code: str) -> str:
     import re
     # Remove package declaration which causes issues in flat directory structure
     return re.sub(r'^\s*package\s+[\w.]+;\s*', '', code, flags=re.MULTILINE)
 
-def normalize_files(code: str, language: str, files: Optional[List[dict]]) -> List[dict]:
+def normalize_files(code: str, language: str, files: Optional[List[dict]], active_file: Optional[str] = None) -> List[dict]:
     language = normalize_language(language)
     
     if language == "java":
@@ -149,7 +165,9 @@ def normalize_files(code: str, language: str, files: Optional[List[dict]]) -> Li
         return [{"name": default_name, "content": code}]
 
     normalized = []
+    normalized_by_name = {}
     has_main = False
+    active_file_name = safe_relative_path(active_file or "") if active_file else None
     for file_info in files:
         name = safe_relative_path(str(file_info.get("name", "")))
         if not name:
@@ -157,18 +175,28 @@ def normalize_files(code: str, language: str, files: Optional[List[dict]]) -> Li
         content = str(file_info.get("content", ""))
         if language == "java":
             content = prepare_java_code(content)
+            public_type = extract_public_java_type_name(content)
+            if public_type:
+                name = f"{public_type}.java"
+            if active_file_name == safe_relative_path(str(file_info.get("name", ""))) and content == code:
+                name = default_name
         if name == default_name:
             has_main = True
-        normalized.append({"name": name, "content": content})
+        item = {"name": name, "content": content}
+        if name in normalized_by_name:
+            normalized[normalized_by_name[name]] = item
+        else:
+            normalized_by_name[name] = len(normalized)
+            normalized.append(item)
 
     if not has_main:
         normalized.insert(0, {"name": default_name, "content": code})
     return normalized
 
 
-def write_source_files(run_dir: str, code: str, language: str, files: Optional[List[dict]]) -> List[str]:
+def write_source_files(run_dir: str, code: str, language: str, files: Optional[List[dict]], active_file: Optional[str] = None) -> List[str]:
     written_files = []
-    for file_info in normalize_files(code, language, files):
+    for file_info in normalize_files(code, language, files, active_file):
         relative = file_info["name"]
         target = os.path.abspath(os.path.join(run_dir, *relative.split("/")))
         if not target.startswith(os.path.abspath(run_dir)):
@@ -178,6 +206,15 @@ def write_source_files(run_dir: str, code: str, language: str, files: Optional[L
             handle.write(file_info["content"])
         written_files.append(relative)
     return written_files
+
+
+def find_java_main_class(code: str, files: Optional[List[dict]], active_file: Optional[str] = None) -> str:
+    normalized = normalize_files(code, "java", files, active_file)
+    for file_info in normalized:
+        main_class = extract_java_main_class_name(str(file_info.get("content", "")))
+        if main_class:
+            return main_class
+    return extract_java_class_name(prepare_java_code(code))
 
 
 async def send_output(websocket: WebSocket, output_type: str, data: str, label: str = ""):
@@ -321,6 +358,7 @@ async def run_single_test(
     label: str = "",
     timeout: float = 30.0,
     use_docker: bool = False,
+    main_class: str = "Main",
 ):
     language = normalize_language(language)
     await websocket.send_json({"type": "status", "data": f"Running {language.upper()}{label}..."})
@@ -333,20 +371,10 @@ async def run_single_test(
                 "-v", f"{os.path.abspath(run_dir)}:/app",
                 "-w", "/app",
                 "openjdk:21-jdk-slim",
-                "java", "-cp", "/app", "Main",
+                "java", "-cp", "/app", main_class,
             ]
             result = await run_process(args, websocket, user_input, timeout=timeout, label=label)
         else:
-            # Find the compiled .class file in the run_dir.
-            class_files = [f for f in os.listdir(run_dir) if f.endswith(".class")]
-            main_class = "Main"
-            if class_files:
-                potential_mains = [f for f in class_files if "$" not in f]
-                if potential_mains:
-                    main_class = potential_mains[0].replace(".class", "")
-                else:
-                    main_class = class_files[0].replace(".class", "")
-            
             await websocket.send_json({"type": "status", "data": f"Executing {main_class}.class..."})
             args = ["java", "-Xmx512m", "-cp", run_dir, main_class]
             result = await run_process(args, websocket, user_input, timeout=timeout, label=label)
@@ -391,6 +419,7 @@ async def execute_code(
     language: str = "java",
     test_cases: Optional[List[dict]] = None,
     files: Optional[List[dict]] = None,
+    active_file: Optional[str] = None,
 ):
     language = normalize_language(language)
     run_id = str(uuid.uuid4())
@@ -417,11 +446,12 @@ async def execute_code(
             return
 
         await websocket.send_json({"type": "clear", "data": ""})
-        written_files = write_source_files(run_dir, code, language, files)
+        written_files = write_source_files(run_dir, code, language, files, active_file)
         if not written_files:
             await send_output(websocket, "stderr", f"No valid {language} source files were provided.")
             await websocket.send_json({"type": "status", "data": "Invalid Project"})
             return
+        main_class = find_java_main_class(code, files, active_file) if language == "java" else "Main"
 
         compile_result = await compile_sources(run_dir, language, written_files, websocket, use_docker)
         if compile_result["code"] != 0:
@@ -453,6 +483,7 @@ async def execute_code(
                     label=label,
                     timeout=30.0,
                     use_docker=use_docker,
+                    main_class=main_class,
                 )
                 max_time = max(max_time, float(result["time"]))
                 actual = result["stdout"].strip()
@@ -485,6 +516,7 @@ async def execute_code(
                 websocket,
                 timeout=30.0,
                 use_docker=use_docker,
+                main_class=main_class,
             )
             await websocket.send_json({"type": "metrics", "data": {"time": result["time"], "memory": "512m limit"}})
             await websocket.send_json({"type": "status", "data": result["status"]})

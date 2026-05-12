@@ -87,7 +87,8 @@ type ExecutionMessage = {
 
 const projectStorageKeyBase = 'codme_project_v1';
 const resultPanelWidthKey = 'codme_result_panel_width';
-const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://codme-1.onrender.com';
+const apiBase = (import.meta.env.VITE_API_BASE_URL || 'https://codme-1.onrender.com').replace(/\/$/, '');
+const wsBase = (import.meta.env.VITE_WS_URL || apiBase.replace(/^http/, 'ws')).replace(/\/$/, '');
 
 const languageMeta: Record<SupportedLanguage, { label: string; extension: string; mainFile: string; monaco: string }> = {
   java: { label: 'Java', extension: '.java', mainFile: 'Main.java', monaco: 'java' },
@@ -313,8 +314,7 @@ export default function IDEWorkspace() {
     socketRef.current?.close();
     setConnectionState(reconnectRef.current > 0 ? 'reconnecting' : 'connecting');
     
-    // Hardcoded production URL for absolute reliability
-    const url = `wss://codme-1.onrender.com/ws/execute?token=${encodeURIComponent(token || '')}`;
+    const url = `${wsBase}/ws/execute?token=${encodeURIComponent(token || '')}`;
     
     console.log('🔌 Connecting to WebSocket:', url);
     const ws = new WebSocket(url);
@@ -486,22 +486,51 @@ export default function IDEWorkspace() {
       navigate('/');
       return;
     }
-    if (socketRef.current?.readyState !== WebSocket.OPEN) {
-      toast.error('Connection lost. Reconnecting...');
-      void connectSocket();
-      return;
-    }
 
-    console.log('🚀 Sending execution request for:', language);
-    socketRef.current.send(JSON.stringify({
+    const payload = {
       action: 'execute',
       language,
       code: editorRef.current?.getValue() || code,
       input: stdinText,
       testCases: withTests ? testCases : null,
-      files: files.map(f => ({ name: f.name, content: f.content }))
-    }));
-  }, [code, connectSocket, files, language, navigate, testCases, token]);
+      files: files.map(f => ({ name: f.name, content: f.content })),
+      activeFile: activeFile?.name,
+    };
+
+    console.log('🚀 Sending execution request for:', language);
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(payload));
+      return;
+    }
+
+    toast.error('Realtime connection lost. Running through HTTP fallback...');
+    void connectSocket();
+
+    try {
+      setStatus('Running through HTTP fallback...');
+      const response = await fetch(`${apiBase}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, token }),
+        signal: AbortSignal.timeout(45000),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.detail || 'Execution request failed.');
+      }
+      if (Array.isArray(data.messages)) {
+        data.messages.forEach((message: ExecutionMessage) => applyExecutionMessage(message));
+      }
+    } catch (error: any) {
+      const message = error?.name === 'TimeoutError'
+        ? 'Execution timed out while contacting the backend.'
+        : error?.message || 'Execution failed because the backend could not be reached.';
+      clearOutput();
+      addOutput({ type: 'error', data: message });
+      setStatus('Server Error');
+      setActivePanel('stderr');
+    }
+  }, [activeFile?.name, addOutput, applyExecutionMessage, clearOutput, code, connectSocket, files, language, navigate, setStatus, testCases, token]);
 
   const handleRun = useCallback((withTests = runWithTests) => {
     const source = editorRef.current?.getValue() ?? activeFile?.content ?? code;

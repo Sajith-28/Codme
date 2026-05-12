@@ -28,6 +28,7 @@ class ExecuteRequest(BaseModel):
     testCases: Optional[List[dict]] = None
     files: Optional[List[dict]] = None
     language: str = "java"
+    activeFile: Optional[str] = None
 
 
 class MessageCollector:
@@ -87,6 +88,7 @@ async def execute_http(payload: ExecuteRequest):
         payload.language,
         payload.testCases,
         payload.files,
+        payload.activeFile,
     )
     return {"ok": True, "messages": collector.messages}
 
@@ -100,6 +102,9 @@ async def websocket_execute(websocket: WebSocket, token: Optional[str] = Query(N
     if not user_id:
         # Allow offline/practice mode if token is missing or invalid
         user_id = "offline-practice-user"
+        print(f"✅ WebSocket accepted for guest user")
+    else:
+        print(f"✅ WebSocket accepted for user: {user_id}")
 
     try:
         while True:
@@ -118,6 +123,7 @@ async def websocket_execute(websocket: WebSocket, token: Optional[str] = Query(N
                 user_input = data.get("input", "")
                 test_cases = data.get("testCases", None)
                 files = data.get("files", None)
+                active_file = data.get("activeFile", None)
                 language = data.get("language", "java")
                 if not code:
                     await websocket.send_json({
@@ -126,7 +132,7 @@ async def websocket_execute(websocket: WebSocket, token: Optional[str] = Query(N
                     })
                     continue
 
-                await execute_code(code, user_input, websocket, user_id, language, test_cases, files)
+                await execute_code(code, user_input, websocket, user_id, language, test_cases, files, active_file)
 
     except WebSocketDisconnect:
         print("Client disconnected")
