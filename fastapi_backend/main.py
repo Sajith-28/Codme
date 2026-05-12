@@ -12,8 +12,8 @@ app = FastAPI(title="CODME API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex="https://.*\.vercel\.app",
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "https://frontend-nine-chi-28.vercel.app"],
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=["http://localhost:5173", "http://localhost:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
