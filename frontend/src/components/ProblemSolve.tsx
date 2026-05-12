@@ -9,7 +9,7 @@ import { ArrowLeft, Play, RotateCw, Send, Bug, Clock, Tag, ChevronRight, BrainCi
 import { toast } from 'react-hot-toast';
 import LanguageDropdown from './LanguageDropdown';
 
-const wsBase = import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
+const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-1.onrender.com';
 const monacoLangMap: Record<string, string> = { java: 'java', python: 'python', c: 'c', cpp: 'cpp' };
 
 export default function ProblemSolve() {

@@ -87,8 +87,8 @@ type ExecutionMessage = {
 
 const projectStorageKeyBase = 'codme_project_v1';
 const resultPanelWidthKey = 'codme_result_panel_width';
-const apiBase = import.meta.env.VITE_API_BASE_URL || '';
-const wsBase = import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
+const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://codme-1.onrender.com';
+const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-1.onrender.com';
 
 const languageMeta: Record<SupportedLanguage, { label: string; extension: string; mainFile: string; monaco: string }> = {
   java: { label: 'Java', extension: '.java', mainFile: 'Main.java', monaco: 'java' },
