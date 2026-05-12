@@ -270,8 +270,7 @@ export default function IDEWorkspace() {
       setConnectionMessage(data.runtime?.docker ? 'Connected with Docker sandbox' : 'Connected with local runtimes');
       return true;
     } catch {
-      setConnectionState('offline');
-      setConnectionMessage('Backend is not reachable on port 8000. Start FastAPI and retry.');
+      setConnectionMessage('Connecting directly to execution engine...');
       return false;
     }
   }, []);
@@ -311,14 +310,19 @@ export default function IDEWorkspace() {
 
   const connectSocket = useCallback(async () => {
     if (!token) return;
-    const healthy = await checkHealth();
-    if (!healthy) return;
+    
+    // Attempt health check in background, don't block the connection
+    void checkHealth();
 
     socketRef.current?.close();
     setConnectionState(reconnectRef.current > 0 ? 'reconnecting' : 'connecting');
-    const url = `${wsBase}/ws/execute?token=${encodeURIComponent(token || '')}`;
-    console.log('🔌 Connecting to WebSocket:', url);
-    const ws = new WebSocket(url);
+    
+    const base = wsBase.replace(/\/$/, '');
+    const wsUrl = new URL(`${base}/ws/execute`);
+    wsUrl.searchParams.set('token', token || '');
+    
+    console.log('🔌 Connecting to WebSocket:', wsUrl.toString());
+    const ws = new WebSocket(wsUrl.toString());
     socketRef.current = ws;
 
     ws.onopen = () => {
