@@ -22,6 +22,7 @@ export default function ProblemSolve() {
 
   const [isBusy, setIsBusy] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [stdoutText, setStdoutText] = useState('');
   const [stderrText, setStderrText] = useState('');
   const [status, setStatus] = useState('Idle');
   const [activeTab, setActiveTab] = useState<'description' | 'info'>('description');
@@ -53,6 +54,7 @@ export default function ProblemSolve() {
 
     setIsBusy(true);
     setResults([]);
+    setStdoutText('');
     setStderrText('');
     setDebugHints(null);
     setShowDebug(false);
@@ -104,6 +106,8 @@ export default function ProblemSolve() {
         } else if (message.type === 'output') {
           if (message.data.type === 'stderr' || message.data.type === 'error') {
             setStderrText(prev => prev + message.data.data);
+          } else if (message.data.type === 'stdout') {
+            setStdoutText(prev => prev + message.data.data);
           }
         }
       };
@@ -124,10 +128,10 @@ export default function ProblemSolve() {
 
       ws.onerror = (err) => {
         clearTimeout(connectionTimeout);
-        console.error('WS Error:', err);
+        console.error('WebSocket connection failed to:', wsUrl.toString(), err);
         setStatus('Connection Error');
         setIsBusy(false);
-        toast.error('WebSocket encountered an error.');
+        toast.error(`Connection failed. Make sure the backend at ${wsUrl.host} is running.`);
       };
     } catch (err) {
       console.error('Execution Error:', err);
@@ -252,6 +256,9 @@ export default function ProblemSolve() {
           <div className="flex border-b border-white/5">
             <button onClick={() => setActivePanel('results')} className={`px-4 py-2 text-xs font-mono transition-colors flex items-center gap-2 ${activePanel === 'results' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>
               <BrainCircuit className="h-3 w-3"/> Results
+            </button>
+            <button onClick={() => setActivePanel('stdout')} className={`px-4 py-2 text-xs font-mono transition-colors flex items-center gap-2 ${activePanel === 'stdout' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>
+              <Activity className="h-3 w-3"/> Stdout
             </button>
             <button onClick={() => setActivePanel('debug')} className={`px-4 py-2 text-xs font-mono transition-colors flex items-center gap-2 ${activePanel === 'debug' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>
               <Bug className="h-3 w-3"/> Debug
@@ -436,6 +443,25 @@ export default function ProblemSolve() {
                      <pre className="text-[10px] font-mono text-red-300/80 whitespace-pre-wrap break-all">{stderrText}</pre>
                    </div>
                 )}
+              </div>
+            )}
+            {activePanel === 'stdout' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">Standard Output</span>
+                </div>
+                <div className="bg-black/40 rounded-xl p-4 border border-white/5 font-mono text-xs text-white/80 min-h-[200px] whitespace-pre-wrap break-all overflow-auto custom-scrollbar">
+                  {stdoutText || (results.length > 0 ? (
+                    results.map((r, i) => (
+                      <div key={i} className="mb-4">
+                        <div className="text-[9px] text-white/20 mb-1">--- Test {i+1} ---</div>
+                        {r.got || "(no output)"}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-white/20">No output yet. Click RUN to execute.</div>
+                  ))}
+                </div>
               </div>
             )}
 
