@@ -241,17 +241,18 @@ export default function IDEWorkspace() {
     [output],
   );
   const stdoutText = useMemo(() => {
-    let text = stdout.map((item) => `${item.label ? `${item.label} ` : ''}${item.data}`).join('');
-    // Filter out the detected prompts so they don't appear in the final output
-    detectedPrompts.forEach((prompt) => {
-      text = text.split(prompt).join('');
-    });
-    return text;
-  }, [stdout, detectedPrompts]);
-  const stderrText = useMemo(
-    () => stderr.map((item) => item.data).join(''),
-    [stderr],
-  );
+    return output
+      .filter(item => item.type === 'stdout')
+      .map(item => item.data)
+      .join('');
+  }, [output]);
+  
+  const stderrText = useMemo(() => {
+    return output
+      .filter(item => item.type === 'stderr' || item.type === 'error')
+      .map(item => item.data)
+      .join('');
+  }, [output]);
   const isBusy = !['Idle', 'Completed', 'Compilation Error', 'Timeout', 'Runtime Unavailable', 'Server Error'].some((item) => status.includes(item)) && !status.startsWith('Done') && !status.startsWith('Exited');
   const canRun = !isBusy;
 
@@ -277,12 +278,16 @@ export default function IDEWorkspace() {
 
   const applyExecutionMessage = useCallback((message: ExecutionMessage) => {
     if (message.type === 'output') {
+      console.log('📡 Received Output:', message.data);
       addOutput(message.data);
       if (message.data.type === 'stderr' || message.data.type === 'error') {
         setActivePanel('stderr');
+      } else {
+        setActivePanel('stdout');
       }
     }
     if (message.type === 'status') {
+      console.log('📊 Status Update:', message.data);
       setStatus(message.data);
       if (message.data.includes('Error') || message.data.includes('Timeout') || message.data.startsWith('Exited')) {
         setActivePanel('stderr');
@@ -311,18 +316,17 @@ export default function IDEWorkspace() {
   const connectSocket = useCallback(async () => {
     if (!token) return;
     
-    // Attempt health check in background, don't block the connection
+    // Attempt health check in background
     void checkHealth();
 
     socketRef.current?.close();
     setConnectionState(reconnectRef.current > 0 ? 'reconnecting' : 'connecting');
     
-    const base = wsBase.replace(/\/$/, '');
-    const wsUrl = new URL(`${base}/ws/execute`);
-    wsUrl.searchParams.set('token', token || '');
+    // Hardcoded production URL for absolute reliability
+    const url = `wss://codme-1.onrender.com/ws/execute?token=${encodeURIComponent(token || '')}`;
     
-    console.log('🔌 Connecting to WebSocket:', wsUrl.toString());
-    const ws = new WebSocket(wsUrl.toString());
+    console.log('🔌 Connecting to WebSocket:', url);
+    const ws = new WebSocket(url);
     socketRef.current = ws;
 
     ws.onopen = () => {
@@ -497,10 +501,7 @@ export default function IDEWorkspace() {
       return;
     }
 
-    // Clear locally for instant feedback
-    clearOutput();
-    setTestResults([]);
-    
+    console.log('🚀 Sending execution request for:', language);
     socketRef.current.send(JSON.stringify({
       action: 'execute',
       language,
