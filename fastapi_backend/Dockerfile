@@ -1,8 +1,8 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.11-slim-bookworm
 
 # Install system dependencies (Java 17, GCC, G++)
 RUN apt-get update && apt-get install -y \
-    openjdk-17-jdk-slim \
+    openjdk-17-jdk \
     gcc \
     g++ \
     && rm -rf /var/lib/apt/lists/*
