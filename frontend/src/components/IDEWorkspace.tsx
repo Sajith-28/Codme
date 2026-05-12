@@ -88,7 +88,6 @@ type ExecutionMessage = {
 const projectStorageKeyBase = 'codme_project_v1';
 const resultPanelWidthKey = 'codme_result_panel_width';
 const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://codme-1.onrender.com';
-const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-1.onrender.com';
 
 const languageMeta: Record<SupportedLanguage, { label: string; extension: string; mainFile: string; monaco: string }> = {
   java: { label: 'Java', extension: '.java', mainFile: 'Main.java', monaco: 'java' },
@@ -231,14 +230,6 @@ export default function IDEWorkspace() {
   const filteredFiles = useMemo(
     () => files.filter((file) => file.path.toLowerCase().includes(searchQuery.toLowerCase())),
     [files, searchQuery],
-  );
-  const stdout = useMemo(
-    () => output.filter((item) => item.type === 'stdout'),
-    [output],
-  );
-  const stderr = useMemo(
-    () => output.filter((item) => item.type === 'stderr' || item.type === 'error'),
-    [output],
   );
   const stdoutText = useMemo(() => {
     return output
