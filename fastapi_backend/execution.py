@@ -305,6 +305,11 @@ async def compile_sources(run_dir: str, language: str, files: List[str], websock
     else:
         return {"code": 1, "stdout": "", "stderr": f"Unsupported language: {language}"}
 
+    if language == "java" and compile_result["code"] == 0:
+        class_files = [f for f in os.listdir(run_dir) if f.endswith(".class")]
+        if not class_files:
+            return {"code": 1, "stdout": "", "stderr": "Compilation succeeded but no .class files were found. Check class name and package."}
+    
     return compile_result
 
 
@@ -333,17 +338,16 @@ async def run_single_test(
             result = await run_process(args, websocket, user_input, timeout=timeout, label=label)
         else:
             # Find the compiled .class file in the run_dir.
-            # We look for the first class file that was generated.
             class_files = [f for f in os.listdir(run_dir) if f.endswith(".class")]
             main_class = "Main"
             if class_files:
-                # If there are multiple, we prefer one that doesn't have a '$' (avoid inner classes)
                 potential_mains = [f for f in class_files if "$" not in f]
                 if potential_mains:
                     main_class = potential_mains[0].replace(".class", "")
                 else:
                     main_class = class_files[0].replace(".class", "")
             
+            await websocket.send_json({"type": "status", "data": f"Executing {main_class}.class..."})
             args = ["java", "-Xmx512m", "-cp", run_dir, main_class]
             result = await run_process(args, websocket, user_input, timeout=timeout, label=label)
     elif language == "python":
