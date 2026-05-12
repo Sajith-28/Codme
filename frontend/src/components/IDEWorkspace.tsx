@@ -176,6 +176,7 @@ export default function IDEWorkspace() {
   const socketRef = useRef<WebSocket | null>(null);
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const reconnectRef = useRef(0);
+  const allowReconnectRef = useRef(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const projectInputRef = useRef<HTMLInputElement>(null);
 
@@ -323,7 +324,7 @@ export default function IDEWorkspace() {
     ws.onopen = () => {
       reconnectRef.current = 0;
       setConnectionState('connected');
-      setConnectionMessage(health?.runtime?.docker ? 'Realtime channel secured through Docker' : 'Realtime channel secured through local runtime tools');
+      setConnectionMessage('Realtime channel connected');
       setStatus('Idle');
     };
 
@@ -337,6 +338,7 @@ export default function IDEWorkspace() {
     };
 
     ws.onclose = (event) => {
+      if (!allowReconnectRef.current || socketRef.current !== ws) return;
       if (event.code === 1008) {
         setToken(null);
         navigate('/');
@@ -352,16 +354,18 @@ export default function IDEWorkspace() {
         setConnectionMessage('Realtime channel is offline. Retry after the backend is running.');
       }
     };
-  }, [applyExecutionMessage, checkHealth, health?.runtime?.docker, navigate, setStatus, setToken, token]);
+  }, [applyExecutionMessage, checkHealth, navigate, setStatus, setToken, token]);
 
   useEffect(() => {
     if (!token) {
       navigate('/');
       return;
     }
+    allowReconnectRef.current = true;
     const bootTimer = window.setTimeout(() => setBooted(true), 900);
     void connectSocket();
     return () => {
+      allowReconnectRef.current = false;
       window.clearTimeout(bootTimer);
       socketRef.current?.close();
     };
@@ -481,6 +485,43 @@ export default function IDEWorkspace() {
     if (splitFileId === fileId) setSplitFileId(null);
   };
 
+  const waitForSocket = useCallback(async () => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      return socketRef.current;
+    }
+
+    if (!socketRef.current || socketRef.current.readyState === WebSocket.CLOSED || socketRef.current.readyState === WebSocket.CLOSING) {
+      void connectSocket();
+    }
+
+    const socket = socketRef.current;
+    if (!socket) return null;
+    if (socket.readyState === WebSocket.OPEN) return socket;
+    if (socket.readyState !== WebSocket.CONNECTING) return null;
+
+    setStatus('Connecting realtime channel...');
+
+    return new Promise<WebSocket | null>((resolve) => {
+      let settled = false;
+      const finish = (readySocket: WebSocket | null) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeoutId);
+        socket.removeEventListener('open', handleOpen);
+        socket.removeEventListener('error', handleFailure);
+        socket.removeEventListener('close', handleFailure);
+        resolve(readySocket);
+      };
+      const handleOpen = () => finish(socket);
+      const handleFailure = () => finish(null);
+      const timeoutId = window.setTimeout(() => finish(null), 4500);
+
+      socket.addEventListener('open', handleOpen);
+      socket.addEventListener('error', handleFailure);
+      socket.addEventListener('close', handleFailure);
+    });
+  }, [connectSocket, setStatus]);
+
   const executeCode = useCallback(async (withTests: boolean, stdinText: string) => {
     if (!token) {
       navigate('/');
@@ -498,13 +539,13 @@ export default function IDEWorkspace() {
     };
 
     console.log('🚀 Sending execution request for:', language);
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(payload));
+    const socket = await waitForSocket();
+    if (socket) {
+      socket.send(JSON.stringify(payload));
       return;
     }
 
-    toast.error('Realtime connection lost. Running through HTTP fallback...');
-    void connectSocket();
+    toast('Realtime is still waking up. Running through HTTP fallback...');
 
     try {
       setStatus('Running through HTTP fallback...');
@@ -530,7 +571,7 @@ export default function IDEWorkspace() {
       setStatus('Server Error');
       setActivePanel('stderr');
     }
-  }, [activeFile?.name, addOutput, applyExecutionMessage, clearOutput, code, connectSocket, files, language, navigate, setStatus, testCases, token]);
+  }, [activeFile?.name, addOutput, applyExecutionMessage, clearOutput, code, files, language, navigate, setStatus, testCases, token, waitForSocket]);
 
   const handleRun = useCallback((withTests = runWithTests) => {
     const source = editorRef.current?.getValue() ?? activeFile?.content ?? code;
