@@ -94,12 +94,13 @@ async def execute_http(payload: ExecuteRequest):
 
 @app.websocket("/ws/execute")
 async def websocket_execute(websocket: WebSocket, token: Optional[str] = Query(None)):
+    # Explicitly accept the connection from any origin to prevent CORS blocking
+    await websocket.accept()
+    
     user_id = verify_ws_token(token) if token else None
     if not user_id:
         # Allow offline/practice mode if token is missing or invalid
         user_id = "offline-practice-user"
-
-    await websocket.accept()
 
     try:
         while True:
