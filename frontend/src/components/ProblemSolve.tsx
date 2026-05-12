@@ -44,10 +44,13 @@ export default function ProblemSolve() {
 
   if (!problem) return <div className="p-8 text-center">Problem not found</div>;
 
-  const handleRun = (submit = false) => {
-    if (isBusy) return;
-    
+  const handleRun = async (submit: boolean = false) => {
     const src = editorRef.current?.getValue() || code;
+    if (!src.trim()) {
+      toast.error('Please write some code first!');
+      return;
+    }
+
     setIsBusy(true);
     setResults([]);
     setStderrText('');
@@ -56,53 +59,82 @@ export default function ProblemSolve() {
     setStatus('Connecting...');
     setActivePanel('results');
 
-    const url = `${wsBase}/ws/execute?token=${encodeURIComponent(token || '')}`;
-    const ws = new WebSocket(url);
-    socketRef.current = ws;
+    try {
+      // Build WebSocket URL robustly
+      const base = wsBase.replace(/\/$/, '');
+      const wsUrl = new URL(`${base}/ws/execute`);
+      wsUrl.searchParams.set('token', token || '');
+      
+      const ws = new WebSocket(wsUrl.toString());
+      socketRef.current = ws;
 
-    ws.onopen = () => {
-      setStatus('Running...');
-      const cases = submit ? problem.testCases : problem.testCases.slice(0, 2);
-      ws.send(JSON.stringify({
-        action: 'execute',
-        code: src,
-        language,
-        input: '',
-        testCases: cases.map(tc => ({ input: tc.input, expected: tc.expected })),
-        files: null
-      }));
-    };
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'status') {
-        setStatus(message.data);
-        if (message.data.startsWith('Done') || message.data.includes('Error') || message.data.includes('Timeout') || message.data.startsWith('Exited')) {
+      // Timeout for connection
+      const connectionTimeout = setTimeout(() => {
+        if (ws.readyState !== WebSocket.OPEN) {
+          ws.close();
+          setStatus('Connection Timeout');
           setIsBusy(false);
+          toast.error('Connection to server timed out. Retrying...');
         }
-      } else if (message.type === 'testResult') {
-        setResults(prev => [...prev, message.data]);
-      } else if (message.type === 'output') {
-        if (message.data.type === 'stderr' || message.data.type === 'error') {
-          setStderrText(prev => prev + message.data.data);
+      }, 5000);
+
+      ws.onopen = () => {
+        clearTimeout(connectionTimeout);
+        setStatus('Running...');
+        const cases = submit ? problem.testCases : problem.testCases.slice(0, 2);
+        ws.send(JSON.stringify({
+          action: 'execute',
+          code: src,
+          language,
+          input: '',
+          testCases: cases.map(tc => ({ input: tc.input, expected: tc.expected })),
+          files: null
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'status') {
+          setStatus(message.data);
+          if (message.data.startsWith('Done') || message.data.includes('Error') || message.data.includes('Timeout') || message.data.startsWith('Exited')) {
+            setIsBusy(false);
+          }
+        } else if (message.type === 'testResult') {
+          setResults(prev => [...prev, message.data]);
+        } else if (message.type === 'output') {
+          if (message.data.type === 'stderr' || message.data.type === 'error') {
+            setStderrText(prev => prev + message.data.data);
+          }
         }
-      }
-    };
+      };
 
-    ws.onclose = (event) => {
-      setIsBusy(false);
-      if (event.code === 1008) {
-        setStatus('Authentication Error');
-      } else if (event.code !== 1000) {
-        // Only set error if not closed normally
-        if (status === 'Connecting...') setStatus('Connection Error');
-      }
-    };
+      ws.onclose = (event) => {
+        clearTimeout(connectionTimeout);
+        setIsBusy(false);
+        if (event.code === 1008) {
+          setStatus('Authentication Error');
+          toast.error('Authentication expired. Please log in again.');
+        } else if (event.code !== 1000) {
+          if (status === 'Connecting...') {
+             setStatus('Connection Error');
+             toast.error('Server connection failed. Is the backend running?');
+          }
+        }
+      };
 
-    ws.onerror = () => {
-      setStatus('Connection Error');
+      ws.onerror = (err) => {
+        clearTimeout(connectionTimeout);
+        console.error('WS Error:', err);
+        setStatus('Connection Error');
+        setIsBusy(false);
+        toast.error('WebSocket encountered an error.');
+      };
+    } catch (err) {
+      console.error('Execution Error:', err);
+      setStatus('Setup Error');
       setIsBusy(false);
-    };
+      toast.error('Failed to initialize execution.');
+    }
   };
 
   useEffect(() => {
