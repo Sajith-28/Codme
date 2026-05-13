@@ -61,6 +61,7 @@ export default function ProblemsPage() {
   const progress = loadProgress();
   const summary = useMemo(() => summarizeProgress(progress), [progress]);
 
+  const filtered = useMemo(() => {
     return PROBLEMS.filter((problem, index) => {
       const unlocked = index === 0 || summary.solvedSet.has(PROBLEMS[index - 1].id) || summary.solvedSet.has(problem.id);
       
@@ -89,6 +90,7 @@ export default function ProblemsPage() {
       // In Roadmap mode, we enforce the "one-by-one" unlocking unless searching
       return unlocked || mode !== 'roadmap' || normalizedQuery.length > 0;
     });
+  }, [mode, diffFilter, topicFilter, rankFilter, companyFilter, query, summary.solvedSet, summary.bookmarkedSet]);
 
   const diffOptions = useMemo(() => [{ label: 'All Difficulties', value: 'all' }, ...DIFFICULTIES.map((difficulty) => ({ label: difficulty, value: difficulty }))], []);
   const topicOptions = useMemo(() => [{ label: 'All Topics', value: 'all' }, ...ALL_TOPICS.map((topic) => ({ label: topic, value: topic }))], []);
