@@ -1,4 +1,4 @@
-import type { ProblemSeed } from '../problems';
+import type { ProblemSeed } from './types';
 import { initialSeeds } from './initial';
 import { arraySeeds } from './arrays';
 import { stringsAdvancedSeeds } from './strings-advanced';

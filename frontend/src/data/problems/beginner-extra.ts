@@ -1,4 +1,4 @@
-import type { ProblemSeed } from '../problems';
+import type { ProblemSeed } from './types';
 
 export const beginnerExtraSeeds: ProblemSeed[] = [
   // MORE BEGINNER I/O & VARIABLES

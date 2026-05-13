@@ -1,4 +1,4 @@
-import type { ProblemSeed } from '../problems';
+import type { ProblemSeed } from './types';
 
 export const initialSeeds: ProblemSeed[] = [
   { title: 'Print Your First Message', slug: 'print-your-first-message', difficulty: 'Basic', rankTier: 'Beginner', topic: 'input/output', subtopic: 'standard output', shortGoal: 'Print a fixed greeting exactly.', outcome: 'Understand how programs show output.', time: 3, prereq: ['Open the editor', 'Run code'], tests: [{ input: '', expected: 'Hello, CODME!' }], complexity: ['O(1)', 'O(1)'], companies: ['Google', 'Microsoft'], frequency: 10, edgeCases: ['Empty output'], mistakes: ['Misspelling words'] },

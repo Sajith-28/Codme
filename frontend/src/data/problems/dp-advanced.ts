@@ -1,4 +1,4 @@
-import type { ProblemSeed } from '../problems';
+import type { ProblemSeed } from './types';
 
 export const dpAdvancedSeeds: ProblemSeed[] = [
   { title: 'Coin Change Minimum', slug: 'coin-change-minimum', difficulty: 'Advanced', rankTier: 'Platinum', topic: 'dynamic programming', subtopic: 'unbounded knapsack', shortGoal: 'Find fewest coins for a given amount.', outcome: 'Build minimum from each sub-amount.', time: 30, prereq: ['1D DP'], tests: [{ input: '3 11\n1 2 5', expected: '3' }, { input: '2 3\n2 5', expected: '-1' }], complexity: ['O(amount * coins)', 'O(amount)'], companies: ['Amazon', 'Google', 'Microsoft'], frequency: 10 },

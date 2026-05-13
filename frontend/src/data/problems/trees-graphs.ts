@@ -1,4 +1,4 @@
-import type { ProblemSeed } from '../problems';
+import type { ProblemSeed } from './types';
 
 export const treesGraphsSeeds: ProblemSeed[] = [
   { title: 'Invert Binary Tree', slug: 'invert-binary-tree', difficulty: 'Intermediate', rankTier: 'Gold', topic: 'trees', subtopic: 'recursive swap', shortGoal: 'Mirror a binary tree left-to-right.', outcome: 'Learn simple recursive tree transformation.', time: 15, prereq: ['Recursion', 'Trees'], tests: [{ input: '7\n4 2 7 1 3 6 9', expected: '4 7 2 9 6 3 1' }], complexity: ['O(n)', 'O(h)'], companies: ['Google', 'Amazon'], frequency: 10 },

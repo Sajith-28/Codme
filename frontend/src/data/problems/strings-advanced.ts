@@ -1,4 +1,4 @@
-import type { ProblemSeed } from '../problems';
+import type { ProblemSeed } from './types';
 
 export const stringsAdvancedSeeds: ProblemSeed[] = [
   { title: 'Longest Palindromic Substring', slug: 'longest-palindromic-substring', difficulty: 'Advanced', rankTier: 'Platinum', topic: 'strings', subtopic: 'expand from center', shortGoal: 'Find the longest palindromic substring.', outcome: 'Learn center-expansion technique for palindromes.', time: 30, prereq: ['Strings', 'Two pointers'], tests: [{ input: 'babad', expected: 'bab' }, { input: 'cbbd', expected: 'bb' }], complexity: ['O(n^2)', 'O(1)'], companies: ['Amazon', 'Microsoft', 'Google'], frequency: 10 },

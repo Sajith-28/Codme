@@ -1,4 +1,4 @@
-import type { ProblemSeed } from '../problems';
+import type { ProblemSeed } from './types';
 
 export const linkedListsStacksSeeds: ProblemSeed[] = [
   { title: 'Merge Two Sorted Lists', slug: 'merge-two-sorted-lists', difficulty: 'Intermediate', rankTier: 'Gold', topic: 'linked lists', subtopic: 'merge', shortGoal: 'Merge two sorted linked lists into one.', outcome: 'Compare heads and stitch nodes together.', time: 18, prereq: ['Linked lists'], tests: [{ input: '3 3\n1 2 4\n1 3 4', expected: '1 1 2 3 4 4' }], complexity: ['O(n+m)', 'O(1)'], companies: ['Amazon', 'Microsoft', 'Adobe'], frequency: 10 },
