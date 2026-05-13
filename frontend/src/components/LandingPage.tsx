@@ -6,6 +6,7 @@ import { Terminal } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import AuthModal from './AuthModal';
 import DustParticles from './ui/DustParticles';
+import { PROBLEMS } from '../data/problems';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full relative overflow-x-hidden overflow-y-auto flex flex-col md:flex-row">
+    <div className="min-h-[100dvh] w-full relative overflow-x-hidden overflow-y-auto flex flex-col md:flex-row text-white">
       {/* Background layer */}
       <div className="absolute inset-0 bg-black/[0.96] z-0" />
       
@@ -35,12 +36,16 @@ export default function LandingPage() {
       
       {/* Left content */}
       <div className="flex-1 w-full p-6 pt-20 md:p-12 lg:p-24 relative z-20 flex flex-col justify-center items-center md:items-start text-center md:text-left min-h-[50vh] md:min-h-screen">
+        <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
+          <div className="h-2 w-2 rounded-full bg-neon-blue animate-pulse" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">{PROBLEMS.length}+ INTERVIEW READY PROBLEMS</span>
+        </div>
         <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 tracking-tighter flex items-center max-w-full">
           <span className="font-syncopate">COD</span>
           <span className="font-michroma text-neon-blue neon-text-blue">ME</span>
         </h1>
-        <p className="mt-6 text-neutral-300 max-w-xl text-lg md:text-xl lg:text-2xl font-light font-hk-wide tracking-wide">
-          A cinematic, immersive 3D execution environment. Bring your DSA and competitive programming to life with ultra-performance.
+        <p className="mt-6 text-neutral-300 max-w-xl text-lg md:text-xl lg:text-2xl font-light font-hk-wide tracking-wide leading-relaxed">
+          The ultimate high-performance workspace for elite engineering prep. Master <span className="text-neon-blue">{PROBLEMS.length} curated problems</span> with immersive 3D execution and AI-guided intuition.
         </p>
         <button
           onClick={handleInitialize}

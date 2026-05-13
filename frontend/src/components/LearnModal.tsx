@@ -67,12 +67,30 @@ export default function LearnModal({ problem, onClose, onSolve }: LearnModalProp
                   <LessonBlock icon={<Clock className="h-4 w-4" />} title="Complexity">
                     Time: {problem.timeComplexity}. Space: {problem.spaceComplexity}.
                   </LessonBlock>
+                  <div className="rounded-xl border border-white/10 bg-white/[0.035] p-4">
+                    <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-white/35">Prerequisites</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {problem.prerequisiteKnowledge.map(p => (
+                        <span key={p} className="rounded bg-white/5 px-2 py-1 text-[10px] text-white/50">{p}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {problem.companyTags.length > 0 && (
+                    <div className="rounded-xl border border-neon-blue/20 bg-neon-blue/[0.04] p-4">
+                      <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-neon-blue">Top Companies</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {problem.companyTags.map(c => (
+                          <span key={c} className="rounded bg-neon-blue/10 px-2 py-1 text-[10px] text-neon-blue/70 border border-neon-blue/10">{c}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </article>
 
                 <aside className="space-y-4">
                   <div className="rounded-xl border border-white/10 bg-white/[0.035] p-4">
                     <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-neon-blue">Hints Before Solution</h3>
-                    <ol className="space-y-2 text-sm text-white/60">
+                    <ol className="list-inside list-decimal space-y-2 text-sm text-white/60">
                       {problem.hints.map((hint) => <li key={hint}>{hint}</li>)}
                     </ol>
                   </div>
@@ -80,19 +98,17 @@ export default function LearnModal({ problem, onClose, onSolve }: LearnModalProp
                     <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-neon-green">Dry Run</h3>
                     <pre className="whitespace-pre-wrap text-xs leading-relaxed text-white/65">{problem.dryRunExample}</pre>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                      <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-white/35">Brute Force</h3>
-                      <p className="text-sm text-white/55">{problem.bruteForceApproach}</p>
-                    </div>
-                    <div className="rounded-xl border border-neon-blue/20 bg-neon-blue/[0.04] p-4">
-                      <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-neon-blue">Optimized</h3>
-                      <p className="text-sm text-white/65">{problem.optimizedApproach}</p>
-                    </div>
-                  </div>
                   <div className="rounded-xl border border-amber-400/15 bg-amber-400/[0.04] p-4">
-                    <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-amber-300">Common Mistakes</h3>
-                    <p className="text-sm text-white/58">Off-by-one loops, printing extra spaces, reading the wrong input line, or optimizing before the basic idea is clear.</p>
+                    <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-amber-300">Edge Cases to Handle</h3>
+                    <ul className="list-inside list-disc space-y-1 text-sm text-white/58">
+                      {problem.edgeCases.map(e => <li key={e}>{e}</li>)}
+                    </ul>
+                  </div>
+                  <div className="rounded-xl border border-red-400/15 bg-red-400/[0.04] p-4">
+                    <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-red-400">Common Mistakes</h3>
+                    <ul className="list-inside list-disc space-y-1 text-sm text-white/58">
+                      {problem.commonMistakes.map(m => <li key={m}>{m}</li>)}
+                    </ul>
                   </div>
                 </aside>
               </div>

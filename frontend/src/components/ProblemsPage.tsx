@@ -54,30 +54,50 @@ export default function ProblemsPage() {
   const [diffFilter, setDiffFilter] = useState<Difficulty | 'all'>('all');
   const [topicFilter, setTopicFilter] = useState<Topic | 'all'>('all');
   const [rankFilter, setRankFilter] = useState<RankTier | 'all'>('all');
+  const [companyFilter, setCompanyFilter] = useState<string | 'all'>('all');
   const [mode, setMode] = useState<ViewMode>('roadmap');
   const [learnProblem, setLearnProblem] = useState<Problem | null>(null);
 
   const progress = loadProgress();
   const summary = useMemo(() => summarizeProgress(progress), [progress]);
 
-  const filtered = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
     return PROBLEMS.filter((problem, index) => {
       const unlocked = index === 0 || summary.solvedSet.has(PROBLEMS[index - 1].id) || summary.solvedSet.has(problem.id);
-      if (mode === 'revision' && !summary.solvedSet.has(problem.id) && !summary.bookmarkedSet.has(problem.id)) return false;
-      if (mode === 'interview' && !['Advanced', 'Expert', 'Master'].includes(problem.difficulty)) return false;
-      if (mode === 'contest' && !['Intermediate', 'Advanced', 'Expert', 'Master'].includes(problem.difficulty)) return false;
+      
+      // Mode-specific filtering
+      if (mode === 'revision') {
+        if (!summary.solvedSet.has(problem.id) && !summary.bookmarkedSet.has(problem.id)) return false;
+      } else if (mode === 'interview') {
+        // Interview mode: high frequency or top company, usually Medium/Hard
+        const isHighFreq = (problem.interviewFrequency ?? 0) >= 7;
+        const isfaang = problem.companyTags.some(c => ['Google', 'Amazon', 'Microsoft', 'Meta', 'Netflix', 'Apple'].includes(c));
+        const isRightDiff = ['Intermediate', 'Advanced', 'Expert', 'Master'].includes(problem.difficulty);
+        if (!isRightDiff || (!isHighFreq && !isfaang)) return false;
+      } else if (mode === 'contest') {
+        // Contest mode: Mixed intermediate to master, focusing on algorithmic patterns
+        if (!['Intermediate', 'Advanced', 'Expert', 'Master'].includes(problem.difficulty)) return false;
+      }
+
       if (diffFilter !== 'all' && problem.difficulty !== diffFilter) return false;
       if (topicFilter !== 'all' && problem.topic !== topicFilter) return false;
       if (rankFilter !== 'all' && problem.rankTier !== rankFilter) return false;
-      if (normalizedQuery && !`${problem.title} ${problem.topic} ${problem.subtopic} ${problem.tags.join(' ')}`.toLowerCase().includes(normalizedQuery)) return false;
+      if (companyFilter !== 'all' && !problem.companyTags.includes(companyFilter)) return false;
+      
+      const normalizedQuery = query.trim().toLowerCase();
+      if (normalizedQuery && !`${problem.title} ${problem.topic} ${problem.subtopic} ${problem.tags.join(' ')} ${problem.companyTags.join(' ')}`.toLowerCase().includes(normalizedQuery)) return false;
+      
+      // In Roadmap mode, we enforce the "one-by-one" unlocking unless searching
       return unlocked || mode !== 'roadmap' || normalizedQuery.length > 0;
     });
-  }, [query, diffFilter, topicFilter, rankFilter, mode, summary.solvedSet, summary.bookmarkedSet]);
 
   const diffOptions = useMemo(() => [{ label: 'All Difficulties', value: 'all' }, ...DIFFICULTIES.map((difficulty) => ({ label: difficulty, value: difficulty }))], []);
   const topicOptions = useMemo(() => [{ label: 'All Topics', value: 'all' }, ...ALL_TOPICS.map((topic) => ({ label: topic, value: topic }))], []);
   const rankOptions = useMemo(() => [{ label: 'All Ranks', value: 'all' }, ...RANK_TIERS.map((rank) => ({ label: rank, value: rank }))], []);
+  const companyOptions = useMemo(() => {
+    const companies = new Set<string>();
+    PROBLEMS.forEach(p => p.companyTags.forEach(c => companies.add(c)));
+    return [{ label: 'All Companies', value: 'all' }, ...Array.from(companies).sort().map(c => ({ label: c, value: c }))];
+  }, []);
 
   if (!token) {
     return <Navigate to="/" replace />;
@@ -207,10 +227,11 @@ export default function ProblemsPage() {
                       placeholder="Search problems, topics, patterns..."
                     />
                   </div>
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-4">
                   <CustomSelect value={diffFilter} onChange={(value) => setDiffFilter(value as Difficulty | 'all')} options={diffOptions} placeholder="Difficulty" icon={<Layers className="h-3.5 w-3.5" />} />
                   <CustomSelect value={topicFilter} onChange={(value) => setTopicFilter(value as Topic | 'all')} options={topicOptions} placeholder="Topic" icon={<Tag className="h-3.5 w-3.5" />} />
                   <CustomSelect value={rankFilter} onChange={(value) => setRankFilter(value as RankTier | 'all')} options={rankOptions} placeholder="Rank" icon={<Star className="h-3.5 w-3.5" />} />
+                  <CustomSelect value={companyFilter} onChange={(value) => setCompanyFilter(value)} options={companyOptions} placeholder="Company" icon={<Shield className="h-3.5 w-3.5" />} />
                 </div>
               </div>
 
@@ -319,6 +340,16 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
               <div className="my-4 flex flex-wrap gap-1.5">
                 <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.topic}</span>
                 <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.rankTier}</span>
+                {problem.companyTags.slice(0, 2).map(c => (
+                  <span key={c} className="rounded px-2 py-1 text-[10px] font-mono bg-neon-blue/10 text-neon-blue/60 border border-neon-blue/10">
+                    {c}
+                  </span>
+                ))}
+                {problem.interviewFrequency >= 8 && (
+                  <span className="flex items-center gap-1 rounded bg-amber-400/10 px-2 py-1 text-[9px] font-bold text-amber-400 border border-amber-400/20">
+                    <Flame className="h-2.5 w-2.5" /> HOT
+                  </span>
+                )}
               </div>
 
               <div className="mb-4 flex items-center justify-between text-[10px] font-mono text-white/30">
