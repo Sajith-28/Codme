@@ -316,8 +316,8 @@ function buildProblem(seed: ProblemSeed, index: number): Problem {
 
 export const PROBLEMS: Problem[] = seeds.map(buildProblem);
 
-if (PROBLEMS.length !== 100) {
-  throw new Error(`CODME roadmap must contain exactly 100 problems. Found ${PROBLEMS.length}.`);
+if (PROBLEMS.length < 100) {
+  throw new Error(`CODME roadmap must contain at least 100 problems. Found ${PROBLEMS.length}.`);
 }
 
 export const LEARNING_PATHS = RANK_TIERS.map((rankTier) => ({

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useStore } from '../store/useStore';
 import {
@@ -78,8 +78,7 @@ export default function ProblemsPage() {
   const rankOptions = useMemo(() => [{ label: 'All Ranks', value: 'all' }, ...RANK_TIERS.map((rank) => ({ label: rank, value: rank }))], []);
 
   if (!token) {
-    navigate('/');
-    return null;
+    return <Navigate to="/" replace />;
   }
 
   const refreshProgress = () => setProgressVersion((value) => value + 1);
@@ -102,7 +101,7 @@ export default function ProblemsPage() {
             <h1 className="text-lg font-black tracking-tighter">
               <span className="font-syncopate text-white">COD</span><span className="font-michroma text-neon-blue">ME</span>
             </h1>
-            <p className="hidden text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/35 sm:block">100 Problems DSA Roadmap</p>
+            <p className="hidden text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/35 sm:block">{PROBLEMS.length} Problems DSA Roadmap</p>
           </div>
         </div>
 
@@ -132,7 +131,7 @@ export default function ProblemsPage() {
                   <Sparkles className="h-3.5 w-3.5" /> Guided Academy
                 </div>
                 <h2 className="max-w-3xl text-3xl font-black tracking-tight md:text-5xl">
-                  Solve 100 problems from zero to interview-ready.
+                  Solve {PROBLEMS.length} problems from zero to interview-ready.
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
                   You are learning in <span className="text-neon-blue">{language}</span>. CODME unlocks one step at a time, explains every idea simply, and keeps you moving toward the next best problem.
@@ -151,7 +150,7 @@ export default function ProblemsPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <Metric icon={<Trophy className="h-4 w-4" />} label="XP" value={summary.xp.toLocaleString()} tone="text-neon-blue" />
-            <Metric icon={<CheckCircle2 className="h-4 w-4" />} label="Solved" value={`${summary.solvedCount}/100`} tone="text-neon-green" />
+            <Metric icon={<CheckCircle2 className="h-4 w-4" />} label="Solved" value={`${summary.solvedCount}/${PROBLEMS.length}`} tone="text-neon-green" />
             <Metric icon={<Flame className="h-4 w-4" />} label="Streak" value={`${summary.streak}d`} tone="text-amber-300" />
             <Metric icon={<LineChart className="h-4 w-4" />} label="Today" value={`${summary.todaySolved}/2`} tone="text-neon-purple" />
           </div>
