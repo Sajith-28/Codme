@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Coffee, TerminalSquare, FileCode2, Braces } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { SupportedLanguage } from '../store/useStore';
 
 interface LanguageDropdownProps {
@@ -8,7 +9,7 @@ interface LanguageDropdownProps {
   onChange: (value: SupportedLanguage) => void;
 }
 
-const LANGUAGES: { id: SupportedLanguage; name: string; Icon: any; color: string }[] = [
+const LANGUAGES: { id: SupportedLanguage; name: string; Icon: LucideIcon; color: string }[] = [
   { id: 'java', name: 'Java', Icon: Coffee, color: '#f89820' },
   { id: 'python', name: 'Python', Icon: TerminalSquare, color: '#3776ab' },
   { id: 'c', name: 'C', Icon: FileCode2, color: '#00599c' },

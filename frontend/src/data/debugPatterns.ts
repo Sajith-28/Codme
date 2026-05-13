@@ -69,7 +69,7 @@ export function analyzeError(code: string, errorOutput: string, language: string
       category: 'runtime',
       pattern: /.*/,
       title: 'Execution Issue Detected',
-      explanation: `The program produced an error. Here\'s what happened: ${errorOutput.slice(0, 200)}`,
+      explanation: `The program produced an error. Here's what happened: ${errorOutput.slice(0, 200)}`,
       suggestion: 'Review the error message carefully. Check your logic and input handling.',
     });
   }

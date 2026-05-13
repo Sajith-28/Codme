@@ -50,8 +50,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           signal: AbortSignal.timeout(3000) // 3 seconds timeout
         });
         if (!healthRes.ok) throw new Error();
-      } catch (e) {
-        throw new Error('Backend health check failed. Start FastAPI on port 8000, then retry authentication.');
+      } catch (error) {
+        throw new Error('Backend health check failed. Start FastAPI on port 8000, then retry authentication.', { cause: error });
       }
 
       // 2. Authentication
@@ -67,11 +67,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         signal: AbortSignal.timeout(5000) // 5 seconds timeout
       });
 
-      let data;
+      let data: { access_token?: string; detail?: string };
       try {
         data = await response.json();
-      } catch (e) {
-        throw new Error('Invalid response from server.');
+      } catch (error) {
+        throw new Error('Invalid response from server.', { cause: error });
       }
 
       if (!response.ok) {
@@ -79,7 +79,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       }
 
       // Success
-      setToken(data.access_token);
+      setToken(data.access_token || '');
       toast.success(isLogin ? 'Login successful' : 'Account created successfully');
       
       // Reset form
@@ -90,14 +90,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       
       onClose();
       navigate('/select');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error('An unexpected error occurred');
       // Prevent the ugly "Failed to fetch" message
-      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
         toast.error('Network error: Cannot reach the server. Please check your connection.');
-      } else if (err.name === 'TimeoutError') {
+      } else if (error.name === 'TimeoutError') {
         toast.error('Request timed out. The server took too long to respond.');
       } else {
-        toast.error(err.message || 'An unexpected error occurred');
+        toast.error(error.message || 'An unexpected error occurred');
       }
     } finally {
       setIsLoading(false);

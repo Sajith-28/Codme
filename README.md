@@ -1,67 +1,128 @@
-# 🚀 CODME: The Future of Intelligent Development
+# CODME Academy
 
-**CODME** is a premium, high-performance web-based IDE designed for modern developers who crave speed, precision, and a cinematic coding experience. Developed by **Sajith Ahamed**, CODME transforms the traditional coding environment into a futuristic workspace.
+CODME is a browser-based coding academy and execution environment for learning programming and Data Structures & Algorithms from absolute beginner level to advanced interview patterns.
 
-![CODME Preview](https://github.com/Sajith-28/Codme/raw/main/frontend/src/assets/hero.png)
+Live app: https://codme.vercel.app
 
-## ✨ Visionary Features
+## What Is Included
 
-- **⚡ Multi-Language Engine**: Seamlessly switch between Java, Python, C, and C++ with a unified execution pipeline.
-- **📡 Real-Time Compilation**: Powered by a robust WebSocket architecture, providing instant, streaming feedback from the compiler.
-- **🤖 AI Debug Assistant**: Advanced pattern-matching and AI-driven suggestions to help you identify and fix logic errors in seconds.
-- **💎 Premium Aesthetics**: A stunning UI built on glassmorphism principles, featuring neon accents, cinematic animations, and modern typography (HK Grotesk Wide).
-- **🏆 Practice Arena**: Integrated problem-solving platform with automated test cases, real-time progress tracking, and a "Difference" tool for precise debugging.
-- **📂 Multi-File Workspace**: Manage complex projects with a virtual file system and state persistence across sessions.
+- 100-problem DSA roadmap ordered from first program to master-level patterns
+- Progressive unlock flow so beginners always know the next problem
+- Learn modal on every problem with intuition, analogy, hints, dry run, brute force, optimized approach, and complexity
+- Context-aware AI tutor shell for prompts like “Explain like I am 5”, “Give me a hint”, “Dry run this input”, and “How should I think?”
+- XP, ranks, streaks, daily 2-problem mission, topic mastery, bookmarks, favorites, revision mode, interview prep mode, and contest simulation mode
+- Monaco code editor with Java, Python, C, and C++ support
+- FastAPI/WebSocket execution backend support
+- Vercel production deployment
 
-## 🛠️ Technology Stack
+## Architecture
 
-### Frontend
-- **Framework**: React 19 (Vite)
-- **Styling**: Tailwind CSS 4.0
-- **Animations**: Framer Motion
-- **Editor**: Monaco Editor (The engine behind VS Code)
-- **Icons**: Lucide React
+```text
+frontend/
+  src/
+    components/
+      AITutor.tsx          Problem-aware tutor panel
+      LearnModal.tsx       Beginner-first lesson modal
+      ProblemsPage.tsx     Academy dashboard and 100-problem roadmap
+      ProblemSolve.tsx     Monaco solve page, tests, XP awards
+      IDEWorkspace.tsx     General multi-file IDE
+    data/
+      problems.ts          Scalable roadmap seed database, exactly 100 problems
+      debugPatterns.ts     Local debugging and complexity helpers
+    services/
+      aiTutor.ts           AI tutor service adapter with local fallback
+    store/
+      useStore.ts          Zustand language/editor/auth state
+    utils/
+      progress.ts          XP, ranks, streaks, bookmarks, reminders
+fastapi_backend/
+  main.py                  API and WebSocket execution service
+  execution.py             Language runtime execution layer
+```
 
-### Backend
-- **Core**: FastAPI (Python)
-- **Protocol**: WebSockets (Native)
-- **Storage**: MongoDB & Local Fallback
-- **Sandbox**: Local Runtime Runtimes (Docker-ready)
+## Tech Stack
 
-## 🚀 Getting Started
+- Frontend: React 19, TypeScript, Vite, TailwindCSS 4, Framer Motion
+- Editor: Monaco Editor
+- State: Zustand plus local persistence for academy progress
+- Backend: FastAPI WebSocket execution service
+- AI: `VITE_AI_TUTOR_API` service adapter, with local mentor fallback when no API is configured
+- Deployment: GitHub + Vercel
 
-### Prerequisites
-- Node.js (v18+)
-- Python 3.10+
-- JDK (for Java execution)
-- GCC/G++ (for C/C++ execution)
+## Environment Variables
 
-### Installation
+Frontend:
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Sajith-28/Codme.git
-   cd Codme
-   ```
+```env
+VITE_API_BASE_URL=https://your-backend.example.com
+VITE_WS_URL=wss://your-backend.example.com
+VITE_AI_TUTOR_API=https://your-ai-service.example.com/api/tutor
+```
 
-2. **Setup Frontend**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
+`VITE_AI_TUTOR_API` is optional. If it is not set, CODME uses a local context-aware tutor response engine. A production AI service should accept:
 
-3. **Setup Backend**
-   ```bash
-   cd fastapi_backend
-   pip install -r requirements.txt
-   uvicorn main:app --reload --port 8000
-   ```
+```json
+{
+  "problem": "Problem object",
+  "language": "java | python | c | cpp",
+  "message": "Student question",
+  "code": "Current editor code"
+}
+```
 
-## 👨‍💻 Developer
-Developed with passion by **Sajith Ahamed**. 
+and return:
 
-CODME was built to bridge the gap between simple online compilers and heavy local IDEs, offering a lightweight yet powerful solution for competitive programming and rapid prototyping.
+```json
+{ "answer": "Tutor response" }
+```
 
----
-© 2026 CODME. All rights reserved.
+## Local Development
+
+Frontend:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Backend:
+
+```powershell
+cd fastapi_backend
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Production build:
+
+```powershell
+cd frontend
+npm run build
+```
+
+## Deployment
+
+This repo is connected to Vercel. Root `vercel.json` builds the frontend and serves `frontend/dist`.
+
+Manual production deploy:
+
+```powershell
+cd frontend
+npx vercel@latest --prod --yes
+```
+
+## Roadmap Data Guarantee
+
+`frontend/src/data/problems.ts` throws at runtime if the academy roadmap does not contain exactly 100 problems. Each problem includes:
+
+- title, slug, difficulty, rank tier, topic, subtopic
+- goal, outcome, estimated time, prerequisites
+- hints, intuition, beginner explanation
+- brute force and optimized approaches
+- time and space complexity
+- dry run, test cases, tags, examples, starter code
+
+## Notes
+
+The current production app uses the existing React/Vite architecture for deployment stability. The data and service layers are separated so future migration to Next.js, PostgreSQL, Clerk/Auth.js, or a server-side OpenAI tutor can be done without rewriting the roadmap or UX systems.

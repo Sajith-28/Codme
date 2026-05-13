@@ -1,54 +1,89 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Editor } from '@monaco-editor/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../store/useStore';
-import { PROBLEMS, DIFFICULTY_COLORS } from '../data/problems';
-import { analyzeError, analyzeComplexity } from '../data/debugPatterns';
-import { ArrowLeft, Play, RotateCw, Send, Bug, Clock, Tag, ChevronRight, BrainCircuit, Activity, HardDrive, SplitSquareHorizontal } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { Activity, ArrowLeft, BookOpen, Bug, CheckCircle2, Clock, Play, RotateCw, Send, Tag, Trophy } from 'lucide-react';
+import { useStore } from '../store/useStore';
+import { DIFFICULTY_COLORS, RANK_COLORS, getProblemBySlug } from '../data/problems';
+import { analyzeError, analyzeComplexity } from '../data/debugPatterns';
 import LanguageDropdown from './LanguageDropdown';
+import LearnModal from './LearnModal';
+import AITutor from './AITutor';
+import { markSolved } from '../utils/progress';
 
 const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-1.onrender.com';
 const monacoLangMap: Record<string, string> = { java: 'java', python: 'python', c: 'c', cpp: 'cpp' };
+
+type TestRunResult = {
+  verdict: string;
+  input: string;
+  expected: string;
+  got: string;
+  time: number;
+};
+
+type DebugHints = ReturnType<typeof analyzeError>;
 
 export default function ProblemSolve() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { language, token, code, setCode } = useStore();
-  const problem = PROBLEMS.find(p => p.id === id);
-  const editorRef = useRef<any>(null);
-  const socketRef = useRef<WebSocket | null>(null);
+  const problem = getProblemBySlug(id);
 
   const [isBusy, setIsBusy] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<TestRunResult[]>([]);
   const [stdoutText, setStdoutText] = useState('');
   const [stderrText, setStderrText] = useState('');
   const [status, setStatus] = useState('Idle');
-  const [activeTab, setActiveTab] = useState<'description' | 'info'>('description');
-  const [activePanel, setActivePanel] = useState<'results' | 'debug' | 'stdout'>('results');
-  const [debugHints, setDebugHints] = useState<any>(null);
-  const [, setShowDebug] = useState(false);
+  const [activeTab, setActiveTab] = useState<'description' | 'learn'>('description');
+  const [activePanel, setActivePanel] = useState<'results' | 'stdout' | 'debug'>('results');
+  const [debugHints, setDebugHints] = useState<DebugHints | null>(null);
+  const [learnOpen, setLearnOpen] = useState(false);
+  const [hasAwarded, setHasAwarded] = useState(false);
 
   const complexity = useMemo(() => {
-    if (results.length > 0 && !isBusy) {
-      return analyzeComplexity(editorRef.current?.getValue() || code, language);
-    }
+    if (results.length > 0 && !isBusy) return analyzeComplexity(code, language);
     return null;
-  }, [results, isBusy, language, code]);
+  }, [results.length, isBusy, code, language]);
 
   useEffect(() => {
-    if (problem && !code) {
-      // Initialize code if empty (not doing it every time to preserve state if user navigates back and forth)
+    if (!token) navigate('/');
+  }, [navigate, token]);
+
+  useEffect(() => {
+    if (!problem) return;
+    setCode(problem.starterCode[language]);
+    setResults([]);
+    setStdoutText('');
+    setStderrText('');
+    setStatus('Idle');
+    setHasAwarded(false);
+  }, [problem, language, setCode]);
+
+  useEffect(() => {
+    if (!problem || isBusy || results.length === 0) return;
+    const allPass = results.length === problem.testCases.length && results.every((result) => result.verdict === 'PASS');
+    setStatus(allPass ? 'Accepted' : 'Results Ready');
+    if (allPass && !hasAwarded) {
+      markSolved(problem);
+      setHasAwarded(true);
+      toast.success(`Accepted! +${problem.xp} XP earned`);
     }
-  }, [problem, code]);
+    if (stderrText.trim()) {
+      const src = code;
+      setDebugHints(analyzeError(src, stderrText, language));
+      setActivePanel('debug');
+    }
+  }, [isBusy, results, stderrText, problem, language, code, hasAwarded]);
 
-  if (!problem) return <div className="p-8 text-center">Problem not found</div>;
+  if (!problem) return <div className="min-h-screen bg-[#080a10] p-8 text-center text-white">Problem not found</div>;
 
-  const handleRun = async (submit: boolean = false) => {
-    const src = editorRef.current?.getValue() || code;
+  const handleRun = async (submit = false) => {
+    const src = code;
     if (!src.trim()) {
-      toast.error('Please write some code first!');
+      toast.error('Please write some code first.');
       return;
     }
 
@@ -57,31 +92,26 @@ export default function ProblemSolve() {
     setStdoutText('');
     setStderrText('');
     setDebugHints(null);
-    setShowDebug(false);
     setStatus('Connecting...');
     setActivePanel('results');
 
     try {
-      // Build WebSocket URL robustly
       const base = wsBase.replace(/\/$/, '');
       const wsUrl = new URL(`${base}/ws/execute`);
       wsUrl.searchParams.set('token', token || '');
-      
       const ws = new WebSocket(wsUrl.toString());
-      socketRef.current = ws;
 
-      // Timeout for connection
-      const connectionTimeout = setTimeout(() => {
+      const connectionTimeout = window.setTimeout(() => {
         if (ws.readyState !== WebSocket.OPEN) {
           ws.close();
           setStatus('Connection Timeout');
           setIsBusy(false);
-          toast.error('Connection to server timed out. Retrying...');
+          toast.error('Connection timed out. Please retry.');
         }
       }, 5000);
 
       ws.onopen = () => {
-        clearTimeout(connectionTimeout);
+        window.clearTimeout(connectionTimeout);
         setStatus('Running...');
         const cases = submit ? problem.testCases : problem.testCases.slice(0, 2);
         ws.send(JSON.stringify({
@@ -89,8 +119,8 @@ export default function ProblemSolve() {
           code: src,
           language,
           input: '',
-          testCases: cases.map(tc => ({ input: tc.input, expected: tc.expected })),
-          files: null
+          testCases: cases.map((test) => ({ input: test.input, expected: test.expected })),
+          files: null,
         }));
       };
 
@@ -98,146 +128,129 @@ export default function ProblemSolve() {
         const message = JSON.parse(event.data);
         if (message.type === 'status') {
           setStatus(message.data);
-          if (message.data.startsWith('Done') || message.data.includes('Error') || message.data.includes('Timeout') || message.data.startsWith('Exited')) {
-            setIsBusy(false);
-          }
-        } else if (message.type === 'testResult') {
-          setResults(prev => [...prev, message.data]);
-        } else if (message.type === 'output') {
-          if (message.data.type === 'stderr' || message.data.type === 'error') {
-            setStderrText(prev => prev + message.data.data);
-          } else if (message.data.type === 'stdout') {
-            setStdoutText(prev => prev + message.data.data);
-          }
+          if (message.data.startsWith('Done') || message.data.includes('Error') || message.data.includes('Timeout') || message.data.startsWith('Exited')) setIsBusy(false);
+        }
+        if (message.type === 'testResult') setResults((current) => [...current, message.data as TestRunResult]);
+        if (message.type === 'output') {
+          if (message.data.type === 'stderr' || message.data.type === 'error') setStderrText((current) => current + message.data.data);
+          if (message.data.type === 'stdout') setStdoutText((current) => current + message.data.data);
         }
       };
 
       ws.onclose = (event) => {
-        clearTimeout(connectionTimeout);
+        window.clearTimeout(connectionTimeout);
         setIsBusy(false);
         if (event.code === 1008) {
           setStatus('Authentication Error');
           toast.error('Authentication expired. Please log in again.');
-        } else if (event.code !== 1000) {
-          if (status === 'Connecting...') {
-             setStatus('Connection Error');
-             toast.error('Server connection failed. Is the backend running?');
-          }
         }
       };
 
-      ws.onerror = (err) => {
-        clearTimeout(connectionTimeout);
-        console.error('WebSocket connection failed to:', wsUrl.toString(), err);
+      ws.onerror = () => {
+        window.clearTimeout(connectionTimeout);
         setStatus('Connection Error');
         setIsBusy(false);
-        toast.error(`Connection failed. Make sure the backend at ${wsUrl.host} is running.`);
+        toast.error('Execution backend is unreachable right now.');
       };
-    } catch (err) {
-      console.error('Execution Error:', err);
+    } catch {
       setStatus('Setup Error');
       setIsBusy(false);
       toast.error('Failed to initialize execution.');
     }
   };
 
-  useEffect(() => {
-    if (!isBusy && results.length > 0) {
-      const allPass = results.length === (problem.testCases.length) && results.every(r => r.verdict === 'PASS');
-      if (results.length > 0) {
-        setStatus(allPass ? 'Accepted ✓' : 'Results Ready');
-      }
-      
-      if (stderrText.trim()) {
-        const src = editorRef.current?.getValue() || code;
-        setDebugHints(analyzeError(src, stderrText, language));
-        setShowDebug(true);
-        setActivePanel('debug');
-      }
-    }
-  }, [isBusy, results, stderrText, problem.testCases.length, language]);
-
   return (
-    <div className="min-h-[100dvh] w-full overflow-x-hidden overflow-y-auto md:h-screen md:w-screen md:overflow-hidden flex flex-col text-white" style={{ background: '#080a10' }}>
-      {/* Top bar */}
-      <header className="min-h-14 flex flex-wrap items-center justify-between gap-3 px-3 md:px-4 py-2 border-b border-white/5 shrink-0 relative z-50">
-        <div className="flex items-center gap-3 min-w-0">
-          <button onClick={() => navigate('/problems')} className="icon-button"><ArrowLeft className="h-4 w-4" /></button>
-          <div className="flex items-center gap-2">
-            <h1 className="text-sm font-bold font-mono text-white truncate">{problem.title}</h1>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border" style={{ color: DIFFICULTY_COLORS[problem.difficulty], borderColor: DIFFICULTY_COLORS[problem.difficulty] + '40' }}>{problem.difficulty}</span>
+    <div className="min-h-[100dvh] w-full overflow-x-hidden overflow-y-auto bg-[#080a10] text-white md:h-screen md:w-screen md:overflow-hidden">
+      <header className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-white/5 px-3 py-2 md:px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <button onClick={() => navigate('/problems')} className="icon-button" title="Back to roadmap">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="min-w-0">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h1 className="truncate text-sm font-bold font-mono text-white">{problem.order}. {problem.title}</h1>
+              <span className="rounded-full border px-2 py-0.5 text-[10px] font-mono" style={{ color: DIFFICULTY_COLORS[problem.difficulty], borderColor: `${DIFFICULTY_COLORS[problem.difficulty]}55` }}>{problem.difficulty}</span>
+              <span className="rounded-full border px-2 py-0.5 text-[10px] font-mono" style={{ color: RANK_COLORS[problem.rankTier], borderColor: `${RANK_COLORS[problem.rankTier]}55` }}>{problem.rankTier}</span>
+            </div>
+            <p className="mt-1 hidden text-[10px] font-mono uppercase tracking-[0.2em] text-white/30 md:block">{problem.topic} / {problem.subtopic}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <LanguageDropdown
-            value={language}
-            onChange={(val) => useStore.getState().setLanguage(val)}
-          />
-          <button onClick={() => setActivePanel('debug')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-mono hover:bg-amber-500/20 transition-all">
-            <Bug className="h-3.5 w-3.5" /> Debug
+          <LanguageDropdown value={language} onChange={(value) => useStore.getState().setLanguage(value)} />
+          <button onClick={() => setLearnOpen(true)} className="tool-button gap-1.5 px-3 text-xs">
+            <BookOpen className="h-3.5 w-3.5" /> Learn
           </button>
-          <button onClick={() => handleRun(false)} disabled={isBusy} className="run-button">
+          <button onClick={() => void handleRun(false)} disabled={isBusy} className="run-button">
             {isBusy ? <RotateCw className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />} RUN
           </button>
-          <button onClick={() => handleRun(true)} disabled={isBusy} className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-neon-blue text-black font-bold text-xs hover:bg-neon-blue/80 transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)]">
+          <button onClick={() => void handleRun(true)} disabled={isBusy} className="flex h-9 items-center gap-2 rounded-lg bg-neon-blue px-4 text-xs font-bold text-black shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all hover:bg-neon-blue/80">
             <Send className="h-3.5 w-3.5" /> SUBMIT
           </button>
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 flex flex-col md:flex-row gap-2 p-2">
-        {/* Left: Description */}
-        <div className="w-full md:w-[30%] glass-panel flex flex-col min-w-0 md:min-w-[300px] min-h-[300px] md:min-h-0">
-          <div className="flex border-b border-white/5">
-            <button onClick={() => setActiveTab('description')} className={`px-4 py-2 text-xs font-mono transition-colors ${activeTab === 'description' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>Description</button>
-            <button onClick={() => setActiveTab('info')} className={`px-4 py-2 text-xs font-mono transition-colors ${activeTab === 'info' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>Info</button>
+      <main className="flex min-h-0 flex-1 flex-col gap-2 p-2 md:h-[calc(100vh-57px)] md:flex-row">
+        <aside className="glass-panel flex min-h-[360px] w-full min-w-0 flex-col md:min-h-0 md:w-[28%] md:min-w-[300px]">
+          <div className="flex overflow-x-auto border-b border-white/5">
+            <button onClick={() => setActiveTab('description')} className={`px-4 py-2 text-xs font-mono transition-colors ${activeTab === 'description' ? 'border-b-2 border-neon-blue text-neon-blue' : 'text-white/40'}`}>Description</button>
+            <button onClick={() => setActiveTab('learn')} className={`px-4 py-2 text-xs font-mono transition-colors ${activeTab === 'learn' ? 'border-b-2 border-neon-blue text-neon-blue' : 'text-white/40'}`}>Learning</button>
           </div>
-          <div className="flex-1 overflow-auto p-6 custom-scrollbar">
+          <div className="custom-scrollbar flex-1 overflow-auto p-5">
             {activeTab === 'description' ? (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <h2 className="text-2xl font-black font-mono">{problem.title}</h2>
-                <div className="flex gap-2">
-                  {problem.topics.map(t => <span key={t} className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-white/40 flex items-center gap-1"><Tag className="h-3 w-3"/>{t}</span>)}
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-white/40 flex items-center gap-1"><Clock className="h-3 w-3"/>{problem.timeEstimate}min</span>
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded bg-white/5 px-2 py-1 text-[10px] font-mono text-white/40"><Tag className="mr-1 inline h-3 w-3" />{problem.topic}</span>
+                  <span className="rounded bg-white/5 px-2 py-1 text-[10px] font-mono text-white/40"><Clock className="mr-1 inline h-3 w-3" />{problem.timeEstimate}min</span>
+                  <span className="rounded bg-white/5 px-2 py-1 text-[10px] font-mono text-white/40"><Trophy className="mr-1 inline h-3 w-3" />{problem.xp} XP</span>
                 </div>
-                <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{problem.description}</p>
-                <div className="space-y-4">
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-white/30">Examples</h4>
-                  {problem.examples.map((ex, i) => (
-                    <div key={i} className="bg-white/5 rounded-lg p-3 space-y-2 border border-white/5">
-                      <div className="text-[10px] font-mono text-white/30">Example {i+1}</div>
-                      <div className="text-xs"><span className="text-neon-blue">Input:</span> <code className="text-white/80">{ex.input || '(none)'}</code></div>
-                      <div className="text-xs"><span className="text-neon-green">Output:</span> <code className="text-white/80">{ex.output}</code></div>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/70">{problem.description}</p>
+                <section className="rounded-xl border border-neon-blue/15 bg-neon-blue/[0.04] p-4">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-neon-blue">Beginner Explanation</h3>
+                  <p className="text-sm leading-relaxed text-white/65">{problem.beginnerExplanation}</p>
+                </section>
+                <section className="space-y-3">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-white/30">Examples</h3>
+                  {problem.examples.map((example, index) => (
+                    <div key={`${example.input}-${index}`} className="rounded-lg border border-white/5 bg-white/5 p-3 text-xs">
+                      <div className="mb-2 text-[10px] font-mono text-white/30">Example {index + 1}</div>
+                      <div><span className="text-neon-blue">Input:</span> <code className="text-white/80"> {example.input || '(none)'}</code></div>
+                      <div className="mt-1"><span className="text-neon-green">Output:</span> <code className="text-white/80"> {example.output}</code></div>
                     </div>
                   ))}
-                </div>
-                <div className="space-y-2">
-                   <h4 className="text-xs font-bold uppercase tracking-widest text-white/30">Constraints</h4>
-                   <ul className="list-disc list-inside text-xs text-white/50 space-y-1">
-                     <li>Output must be exactly matching with correct punctuation</li>
-                     <li>Time limit: 2.0s</li>
-                     <li>Memory limit: 256MB</li>
-                   </ul>
-                </div>
+                </section>
+                <section>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/30">Constraints</h3>
+                  <ul className="list-inside list-disc space-y-1 text-xs text-white/50">
+                    {problem.constraints.map((constraint) => <li key={constraint}>{constraint}</li>)}
+                  </ul>
+                </section>
               </div>
             ) : (
-              <div className="text-sm text-white/40 font-mono">Statistical info and leaderboard coming soon...</div>
+              <div className="space-y-4">
+                <InfoBlock title="Intuition" text={problem.intuition} />
+                <InfoBlock title="Brute Force" text={problem.bruteForceApproach} />
+                <InfoBlock title="Optimized Thinking" text={problem.optimizedApproach} />
+                <div className="rounded-xl border border-white/10 bg-black/25 p-4">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/30">Dry Run</h3>
+                  <pre className="whitespace-pre-wrap text-xs leading-relaxed text-white/60">{problem.dryRunExample}</pre>
+                </div>
+              </div>
             )}
           </div>
-        </div>
+        </aside>
 
-        {/* Center: Editor */}
-        <div className="flex-1 glass-panel flex flex-col min-w-0 min-h-[420px] md:min-h-0">
-          <div className="h-10 flex items-center px-4 border-b border-white/5 text-[10px] font-mono text-white/30 bg-white/5">
-            Solution.{language === 'python' ? 'py' : language === 'c' ? 'c' : 'cpp'}
+        <section className="glass-panel flex min-h-[460px] flex-1 flex-col overflow-hidden md:min-h-0">
+          <div className="flex h-10 items-center justify-between border-b border-white/5 bg-white/5 px-4 text-[10px] font-mono text-white/30">
+            <span>Solution.{language === 'python' ? 'py' : language === 'c' ? 'c' : language === 'java' ? 'java' : 'cpp'}</span>
+            <span>{problem.timeComplexity} / {problem.spaceComplexity}</span>
           </div>
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             <Editor
               theme="vs-dark"
               language={monacoLangMap[language]}
               value={code}
-              onChange={val => setCode(val || '')}
-              onMount={editor => editorRef.current = editor}
+              onChange={(value) => setCode(value || '')}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
@@ -246,257 +259,118 @@ export default function ProblemSolve() {
                 padding: { top: 16 },
                 cursorSmoothCaretAnimation: 'on',
                 smoothScrolling: true,
+                automaticLayout: true,
               }}
             />
           </div>
-        </div>
+        </section>
 
-        {/* Right: Results & Debug */}
-        <div className="w-full md:w-[25%] glass-panel flex flex-col min-w-0 md:min-w-[280px] min-h-[320px] md:min-h-0">
-          <div className="flex border-b border-white/5">
-            <button onClick={() => setActivePanel('results')} className={`px-4 py-2 text-xs font-mono transition-colors flex items-center gap-2 ${activePanel === 'results' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>
-              <BrainCircuit className="h-3 w-3"/> Results
-            </button>
-            <button onClick={() => setActivePanel('stdout')} className={`px-4 py-2 text-xs font-mono transition-colors flex items-center gap-2 ${activePanel === 'stdout' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>
-              <Activity className="h-3 w-3"/> Stdout
-            </button>
-            <button onClick={() => setActivePanel('debug')} className={`px-4 py-2 text-xs font-mono transition-colors flex items-center gap-2 ${activePanel === 'debug' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>
-              <Bug className="h-3 w-3"/> Debug
-            </button>
-          </div>
-          <div className="flex-1 overflow-auto p-4 custom-scrollbar">
-            {activePanel === 'results' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">Execution Summary</span>
-                </div>
-
-                <AnimatePresence>
-                  {(results.length > 0 || isBusy) && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -10 }} 
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 mb-6 relative overflow-hidden"
-                    >
-                      <div className="relative z-10 flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                           <div className="flex flex-col">
-                             <span className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Overall Verdict</span>
-                             <span className={`text-xl font-black font-syncopate tracking-tighter ${status.includes('Accepted') ? 'text-neon-green neon-text-green' : status.includes('Error') || status.includes('FAIL') ? 'text-red-400' : 'text-neon-blue'}`}>
-                               {isBusy ? 'TESTING...' : status.includes('Accepted') ? 'ACCEPTED' : results.some(r => r.verdict === 'FAIL') ? 'WRONG ANSWER' : 'PROCESSED'}
-                             </span>
-                           </div>
-                           <div className="h-12 w-12 rounded-full border-2 border-white/5 flex items-center justify-center relative">
-                             <svg className="h-full w-full -rotate-90">
-                               <circle 
-                                 cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="2" 
-                                 className="text-white/5" 
-                               />
-                               <motion.circle 
-                                 cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="3" 
-                                 strokeDasharray="125.6"
-                                 initial={{ strokeDashoffset: 125.6 }}
-                                 animate={{ strokeDashoffset: 125.6 - (125.6 * (results.length / problem.testCases.length)) }}
-                                 className={results.some(r => r.verdict === 'FAIL') ? 'text-red-400' : 'text-neon-blue'}
-                               />
-                             </svg>
-                             <span className="absolute text-[10px] font-bold font-mono">{Math.round((results.length / problem.testCases.length) * 100)}%</span>
-                           </div>
-                        </div>
-                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                           <motion.div 
-                             initial={{ width: 0 }}
-                             animate={{ width: `${(results.length / problem.testCases.length) * 100}%` }}
-                             className={`h-full ${results.some(r => r.verdict === 'FAIL') ? 'bg-red-400' : 'bg-neon-blue shadow-[0_0_10px_rgba(0,240,255,0.5)]'}`}
-                           />
-                        </div>
-                        <div className="flex justify-between text-[9px] font-mono uppercase tracking-widest text-white/30">
-                           <span>{results.filter(r => r.verdict === 'PASS').length} Passed</span>
-                           <span>{results.length} / {problem.testCases.length} Tests</span>
-                        </div>
-
-                        {complexity && (
-                          <div className="pt-3 border-t border-white/5 grid grid-cols-2 gap-4">
-                            <div className="flex flex-col gap-1">
-                               <span className="text-[8px] font-mono text-white/20 uppercase tracking-widest">Time Complexity</span>
-                               <div className="flex items-center gap-2 text-neon-blue font-mono text-xs">
-                                 <Activity className="h-3 w-3" />
-                                 {complexity.time}
-                               </div>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                               <span className="text-[8px] font-mono text-white/20 uppercase tracking-widest">Space Complexity</span>
-                               <div className="flex items-center gap-2 text-neon-purple font-mono text-xs">
-                                 <HardDrive className="h-3 w-3" />
-                                 {complexity.space}
-                               </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="absolute top-0 right-0 -mr-4 -mt-4 h-24 w-24 bg-neon-blue/5 rounded-full blur-3xl" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                
-                {results.length === 0 && !isBusy && (
-                   <div className="text-center py-10 text-white/20 text-xs font-mono">
-                     Click Run or Submit to see results
-                   </div>
-                )}
-
-                {isBusy && results.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-10 gap-3">
-                    <RotateCw className="h-6 w-6 animate-spin text-neon-blue/40" />
-                    <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">{status}</span>
-                  </div>
-                )}
-
+        <aside className="flex min-h-[520px] w-full min-w-0 flex-col gap-2 md:min-h-0 md:w-[30%] md:min-w-[320px]">
+          <AITutor problem={problem} language={language} code={code} />
+          <section className="glass-panel grid min-h-[320px] flex-1 grid-rows-[42px_1fr] overflow-hidden">
+            <div className="flex overflow-x-auto border-b border-white/5">
+              {(['results', 'stdout', 'debug'] as const).map((panel) => (
+                <button key={panel} onClick={() => setActivePanel(panel)} className={`px-4 py-2 text-xs font-mono capitalize transition-colors ${activePanel === panel ? 'border-b-2 border-neon-blue text-neon-blue' : 'text-white/40'}`}>
+                  {panel}
+                </button>
+              ))}
+            </div>
+            <div className="custom-scrollbar overflow-auto p-4">
+              {activePanel === 'results' && <ResultsPanel results={results} isBusy={isBusy} status={status} problemTestCount={problem.testCases.length} complexity={complexity} />}
+              {activePanel === 'stdout' && <pre className="min-h-[180px] whitespace-pre-wrap rounded-xl border border-white/5 bg-black/35 p-4 text-xs text-white/75">{stdoutText || results.map((result, index) => `--- Test ${index + 1} ---\n${result.got || '(no output)'}`).join('\n\n') || 'No output yet. Click RUN to execute.'}</pre>}
+              {activePanel === 'debug' && (
                 <div className="space-y-3">
-                  <AnimatePresence mode="popLayout">
-                    {results.map((res, i) => (
-                      <motion.div
-                        layout
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ 
-                          type: 'spring',
-                          stiffness: 300,
-                          damping: 25,
-                          delay: i * 0.05 
-                        }}
-                        key={i}
-                        className={`bg-white/5 rounded-xl border ${res.verdict === 'PASS' ? 'border-neon-green/20' : 'border-red-500/20'} overflow-hidden shadow-lg`}
-                      >
-                        <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/5">
-                          <div className="flex items-center gap-2">
-                            <div className={`h-1.5 w-1.5 rounded-full ${res.verdict === 'PASS' ? 'bg-neon-green animate-pulse' : 'bg-red-500'}`} />
-                            <span className="text-[10px] font-mono text-white/40 font-bold uppercase tracking-widest">Test {i+1}</span>
-                          </div>
-                          <span className={`text-[10px] font-mono font-black ${res.verdict === 'PASS' ? 'text-neon-green' : 'text-red-400'}`}>{res.verdict}</span>
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-300"><Bug className="h-4 w-4" /> Debug Assistant</div>
+                  {debugHints ? (
+                    <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100/80">
+                      {debugHints.hints.length ? 'A possible issue was detected.' : 'No specific pattern matched yet.'}
+                      {debugHints.hints.map((hint) => (
+                        <div key={hint.title} className="mt-3 rounded-lg border border-white/10 bg-black/20 p-2 text-xs text-white/65">
+                          <div className="font-bold text-amber-200">{hint.title}</div>
+                          <div className="mt-1">{hint.explanation}</div>
+                          <div className="mt-1 text-neon-blue">{hint.suggestion}</div>
                         </div>
-                        <div className="p-4 space-y-3 font-mono text-[10px]">
-                           <div className="space-y-1">
-                             <div className="text-white/20 uppercase tracking-tighter text-[9px]">Input</div>
-                             <div className="bg-black/40 rounded p-2 text-white/60 truncate border border-white/5">{res.input || '(none)'}</div>
-                           </div>
-                           <div className="grid grid-cols-2 gap-2">
-                             <div className="space-y-1">
-                               <div className="text-white/20 uppercase tracking-tighter text-[9px]">Expected</div>
-                               <div className="bg-black/40 rounded p-2 text-neon-green/60 truncate border border-neon-green/10">{res.expected}</div>
-                             </div>
-                             <div className="space-y-1">
-                               <div className="text-white/20 uppercase tracking-tighter text-[9px]">Actual</div>
-                               <div className={`${res.verdict === 'PASS' ? 'text-neon-green/60' : 'text-red-400/60'} bg-black/40 rounded p-2 truncate border ${res.verdict === 'PASS' ? 'border-neon-green/10' : 'border-red-400/10'}`}>{res.got}</div>
-                             </div>
-                           </div>
-                           <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                             <div className="flex items-center gap-1.5">
-                               <Clock className="h-3 w-3 text-white/20" />
-                               <span className="text-white/40">{res.time}ms</span>
-                             </div>
-                             {res.verdict === 'FAIL' && (
-                               <button 
-                                 onClick={() => {
-                                   const expected = res.expected;
-                                   const actual = res.got;
-                                   let diffIdx = -1;
-                                   for (let j = 0; j < Math.max(expected.length, actual.length); j++) {
-                                     if (expected[j] !== actual[j]) {
-                                       diffIdx = j;
-                                       break;
-                                     }
-                                   }
-                                   toast((t: { id: string }) => (
-                                     <div className="flex flex-col gap-3 font-mono text-xs max-w-md">
-                                       <div className="font-bold text-red-400 uppercase tracking-widest">Mismatch Found</div>
-                                       <div className="space-y-2 bg-black/50 p-3 rounded-lg border border-white/10">
-                                         <div>
-                                           <span className="text-neon-green/50">EXP: </span>
-                                           <span>{expected.substring(0, diffIdx)}<span className="bg-neon-green/30 text-white underline">{expected[diffIdx]}</span>{expected.substring(diffIdx + 1)}</span>
-                                         </div>
-                                         <div>
-                                           <span className="text-red-400/50">GOT: </span>
-                                           <span>{actual.substring(0, diffIdx)}<span className="bg-red-500/30 text-white underline">{actual[diffIdx]}</span>{actual.substring(diffIdx + 1)}</span>
-                                         </div>
-                                       </div>
-                                       <button onClick={() => toast.dismiss(t.id)} className="text-white/40 hover:text-white transition-colors text-[10px] uppercase text-right">Close</button>
-                                     </div>
-                                   ), { duration: 6000, position: 'bottom-right', style: { background: '#0a0c14', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' } });
-                                 }}
-                                 className="flex items-center gap-1 px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all text-[9px] font-bold uppercase tracking-wider"
-                               >
-                                 <SplitSquareHorizontal className="h-3 w-3" /> Difference
-                               </button>
-                             )}
-                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-
-                {stderrText && (
-                   <div className="mt-4 p-3 rounded-lg bg-red-500/5 border border-red-500/10">
-                     <div className="text-[10px] font-mono text-red-400/60 mb-2 uppercase tracking-widest">Error Log</div>
-                     <pre className="text-[10px] font-mono text-red-300/80 whitespace-pre-wrap break-all">{stderrText}</pre>
-                   </div>
-                )}
-              </div>
-            )}
-            {activePanel === 'stdout' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">Standard Output</span>
-                </div>
-                <div className="bg-black/40 rounded-xl p-4 border border-white/5 font-mono text-xs text-white/80 min-h-[200px] whitespace-pre-wrap break-all overflow-auto custom-scrollbar">
-                  {stdoutText || (results.length > 0 ? (
-                    results.map((r, i) => (
-                      <div key={i} className="mb-4">
-                        <div className="text-[9px] text-white/20 mb-1">--- Test {i+1} ---</div>
-                        {r.got || "(no output)"}
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   ) : (
-                    <div className="text-white/20">No output yet. Click RUN to execute.</div>
-                  ))}
+                    <p className="text-sm text-white/35">Run code with errors to see beginner-friendly debugging help.</p>
+                  )}
+                  {stderrText && <pre className="whitespace-pre-wrap rounded-xl border border-red-500/10 bg-red-500/5 p-3 text-xs text-red-200/80">{stderrText}</pre>}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          </section>
+        </aside>
+      </main>
 
-            {activePanel === 'debug' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">Debug Assistant</span>
-                </div>
-                {debugHints ? (
-                   <div className="space-y-4">
-                     <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                       <h4 className="text-xs font-bold text-amber-400 flex items-center gap-2 mb-2">
-                         <Bug className="h-3.5 w-3.5"/> Potential Issue Found
-                       </h4>
-                       <p className="text-[11px] text-amber-200/80 leading-relaxed">{debugHints.message}</p>
-                     </div>
-                     <div className="space-y-2">
-                       <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/20">Suggestions</h4>
-                       {debugHints.suggestions.map((s: string, i: number) => (
-                         <div key={i} className="p-2.5 rounded-lg bg-white/5 border border-white/5 text-[11px] text-white/60 flex items-start gap-2">
-                           <ChevronRight className="h-3 w-3 mt-0.5 text-neon-blue shrink-0"/> {s}
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-                ) : (
-                  <div className="text-center py-10 text-white/20 text-xs font-mono">
-                    Run code with errors to see debug assistance
-                  </div>
-                )}
+      <LearnModal problem={learnOpen ? problem : null} onClose={() => setLearnOpen(false)} />
+    </div>
+  );
+}
+
+function InfoBlock({ title, text }: { title: string; text: string }) {
+  return (
+    <section className="rounded-xl border border-white/10 bg-white/[0.035] p-4">
+      <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/30">{title}</h3>
+      <p className="text-sm leading-relaxed text-white/60">{text}</p>
+    </section>
+  );
+}
+
+function ResultsPanel({ results, isBusy, status, problemTestCount, complexity }: { results: TestRunResult[]; isBusy: boolean; status: string; problemTestCount: number; complexity: { time: string; space: string } | null }) {
+  if (results.length === 0 && !isBusy) return <div className="py-10 text-center text-xs font-mono text-white/20">Click Run or Submit to see results</div>;
+  return (
+    <div className="space-y-4">
+      <AnimatePresence>
+        {(results.length > 0 || isBusy) && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/40">Overall Verdict</p>
+                <p className={`text-xl font-black ${status.includes('Accepted') ? 'text-neon-green' : status.includes('Error') ? 'text-red-400' : 'text-neon-blue'}`}>
+                  {isBusy ? 'TESTING...' : status.includes('Accepted') ? 'ACCEPTED' : results.some((result) => result.verdict === 'FAIL') ? 'WRONG ANSWER' : 'PROCESSED'}
+                </p>
               </div>
-            )}
+              <CheckCircle2 className={`h-8 w-8 ${status.includes('Accepted') ? 'text-neon-green' : 'text-white/15'}`} />
+            </div>
+            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/5">
+              <motion.div initial={{ width: 0 }} animate={{ width: `${(results.length / problemTestCount) * 100}%` }} className="h-full bg-neon-blue" />
+            </div>
+            {complexity && <p className="mt-3 text-[10px] font-mono text-white/35">Detected: {complexity.time} time / {complexity.space} space</p>}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isBusy && results.length === 0 && (
+        <div className="flex flex-col items-center justify-center gap-3 py-8">
+          <RotateCw className="h-6 w-6 animate-spin text-neon-blue/40" />
+          <span className="text-[10px] font-mono uppercase tracking-widest text-white/20">{status}</span>
+        </div>
+      )}
+
+      {results.map((result, index) => (
+        <div key={index} className={`rounded-xl border ${result.verdict === 'PASS' ? 'border-neon-green/20' : 'border-red-500/20'} bg-white/5`}>
+          <div className="flex items-center justify-between border-b border-white/5 px-4 py-2">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-white/40">Test {index + 1}</span>
+            <span className={`text-[10px] font-black ${result.verdict === 'PASS' ? 'text-neon-green' : 'text-red-400'}`}>{result.verdict}</span>
+          </div>
+          <div className="space-y-2 p-4 text-[10px] font-mono">
+            <ResultLine label="Input" value={result.input || '(none)'} />
+            <ResultLine label="Expected" value={result.expected} />
+            <ResultLine label="Actual" value={result.got} />
+            <div className="flex items-center gap-1 text-white/35"><Activity className="h-3 w-3" /> {result.time}ms</div>
           </div>
         </div>
-      </main>
+      ))}
+    </div>
+  );
+}
+
+function ResultLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="mb-1 text-white/20">{label}</div>
+      <div className="truncate rounded border border-white/5 bg-black/35 p-2 text-white/65">{value}</div>
     </div>
   );
 }
