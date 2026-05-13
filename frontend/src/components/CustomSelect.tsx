@@ -27,10 +27,10 @@ export default function CustomSelect({ value, onChange, options, placeholder, ic
   const selectedOption = options.find(opt => opt.value === value);
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative w-full sm:w-auto" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 min-w-[160px] justify-between
+        className={`flex w-full sm:w-auto items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 min-w-0 sm:min-w-[160px] justify-between
           ${isOpen 
             ? 'border-neon-blue/50 bg-neon-blue/10 shadow-[0_0_20px_rgba(0,240,255,0.15)]' 
             : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
@@ -52,7 +52,7 @@ export default function CustomSelect({ value, onChange, options, placeholder, ic
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute top-full left-0 mt-2 w-full min-w-[200px] glass-panel border-white/10 p-1.5 z-[100] shadow-2xl backdrop-blur-2xl"
+            className="absolute top-full left-0 mt-2 w-full min-w-full sm:min-w-[200px] glass-panel border-white/10 p-1.5 z-[100] shadow-2xl backdrop-blur-2xl"
           >
             <div className="max-h-[300px] overflow-auto custom-scrollbar">
               {options.map((option) => (

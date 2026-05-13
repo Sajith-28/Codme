@@ -21,7 +21,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden flex flex-col md:flex-row">
+    <div className="min-h-[100dvh] w-full relative overflow-x-hidden overflow-y-auto flex flex-col md:flex-row">
       {/* Background layer */}
       <div className="absolute inset-0 bg-black/[0.96] z-0" />
       
@@ -35,7 +35,7 @@ export default function LandingPage() {
       
       {/* Left content */}
       <div className="flex-1 w-full p-6 pt-20 md:p-12 lg:p-24 relative z-20 flex flex-col justify-center items-center md:items-start text-center md:text-left min-h-[50vh] md:min-h-screen">
-        <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 tracking-tighter flex items-center">
+        <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 tracking-tighter flex items-center max-w-full">
           <span className="font-syncopate">COD</span>
           <span className="font-michroma text-neon-blue neon-text-blue">ME</span>
         </h1>
@@ -44,7 +44,7 @@ export default function LandingPage() {
         </p>
         <button
           onClick={handleInitialize}
-          className="mt-10 relative group px-8 py-4 w-max bg-transparent rounded-lg font-hk-wide font-bold tracking-widest overflow-hidden border border-white/20 hover:border-white/50 transition-all hover:scale-105 active:scale-95"
+          className="mt-10 relative group px-6 sm:px-8 py-4 max-w-full bg-transparent rounded-lg font-hk-wide font-bold tracking-widest overflow-hidden border border-white/20 hover:border-white/50 transition-all hover:scale-105 active:scale-95"
         >
           <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors" />
           <span className="relative z-10 flex items-center justify-center gap-3 text-white uppercase text-sm">

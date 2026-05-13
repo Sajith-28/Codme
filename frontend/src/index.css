@@ -37,7 +37,8 @@
     font-family: 'Geist', 'Inter', sans-serif;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   ::selection {
@@ -448,6 +449,10 @@
   overflow: hidden;
 }
 
+.ide-main-grid {
+  grid-template-columns: 280px minmax(360px, 1fr) 10px var(--result-panel-width);
+}
+
 .lang-card::before {
   content: "";
   position: absolute;
@@ -533,6 +538,95 @@
 @media (max-width: 768px) {
   .lang-card {
     padding: 1.5rem 1rem;
+    border-radius: 16px;
+  }
+
+  .lang-orb {
+    width: 220px;
+    height: 220px;
+    filter: blur(70px);
+  }
+
+  .lang-orb-1 {
+    top: 4%;
+    left: -25%;
+  }
+
+  .lang-orb-2 {
+    right: -25%;
+    bottom: 8%;
+  }
+
+  .lang-orb-3 {
+    display: none;
   }
 }
 
+@media (max-width: 900px) {
+  .ide-shell {
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .ide-workspace-frame {
+    min-height: 100dvh;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    grid-template-rows: none;
+  }
+
+  .ide-workspace-header {
+    min-height: auto;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .ide-workspace-header > div {
+    flex-wrap: wrap;
+  }
+
+  .ide-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: auto;
+  }
+
+  .ide-main-grid > aside:first-child {
+    min-height: 240px;
+    max-height: 360px;
+  }
+
+  .ide-main-grid > section {
+    min-height: 430px;
+  }
+
+  .ide-main-grid > aside:last-child {
+    min-height: 340px;
+  }
+
+  .resize-divider {
+    display: none;
+  }
+
+  .tab-button,
+  .panel-tab {
+    min-width: max-content;
+  }
+}
+
+@media (max-width: 640px) {
+  .run-button {
+    min-width: 0;
+    padding: 0 12px;
+  }
+
+  .icon-button {
+    width: 32px;
+    height: 32px;
+  }
+}

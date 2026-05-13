@@ -35,14 +35,14 @@ export default function LanguageSelect() {
   }
 
   return (
-    <div className="lang-select-shell min-h-screen w-full flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
+    <div className="lang-select-shell min-h-[100dvh] w-full flex flex-col items-center justify-start md:justify-center px-4 py-20 sm:py-16 md:p-8 relative overflow-x-hidden overflow-y-auto">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:56px_56px] opacity-40" />
 
       <motion.button
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         onClick={() => navigate('/')}
-        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-white/50 hover:text-white hover:border-white/20 transition-all font-mono text-xs uppercase tracking-widest"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-white/50 hover:text-white hover:border-white/20 transition-all font-mono text-[10px] sm:text-xs uppercase tracking-widest"
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </motion.button>
@@ -51,18 +51,18 @@ export default function LanguageSelect() {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: 'easeOut' }}
-        className="flex flex-col items-center mb-8 md:mb-10 relative z-10"
+        className="flex flex-col items-center mb-6 md:mb-10 relative z-10"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="h-10 w-10 rounded-xl border border-neon-blue/40 bg-neon-blue/10 grid place-items-center shadow-[0_0_24px_rgba(0,240,255,0.25)]">
             <Code2 className="h-6 w-6 text-neon-blue" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter">
             <span className="font-syncopate text-white">COD</span>
             <span className="font-michroma text-neon-blue neon-text-blue">ME</span>
           </h1>
         </div>
-        <p className="text-white/50 text-sm md:text-base font-mono tracking-wider uppercase">
+        <p className="text-white/50 text-xs sm:text-sm md:text-base font-mono tracking-wider uppercase">
           Select Your Language
         </p>
       </motion.div>
@@ -75,25 +75,25 @@ export default function LanguageSelect() {
           whileHover={{ y: -8, scale: 1.015, transition: { duration: 0.22 } }}
           whileTap={{ scale: 0.985 }}
           onClick={() => navigate('/problems')}
-          className="group relative w-full overflow-hidden rounded-[20px] border border-neon-blue/25 bg-[linear-gradient(135deg,rgba(0,240,255,0.14),rgba(255,255,255,0.055)_46%,rgba(57,255,20,0.08))] p-5 md:p-6 text-left shadow-[0_22px_70px_rgba(0,0,0,0.42),0_0_42px_rgba(0,240,255,0.10)] backdrop-blur-2xl transition-all duration-300 hover:border-neon-blue/60 hover:shadow-[0_26px_90px_rgba(0,0,0,0.48),0_0_54px_rgba(0,240,255,0.24)]"
+          className="group relative w-full overflow-hidden rounded-[20px] border border-neon-blue/25 bg-[linear-gradient(135deg,rgba(0,240,255,0.14),rgba(255,255,255,0.055)_46%,rgba(57,255,20,0.08))] p-4 sm:p-5 md:p-6 text-left shadow-[0_22px_70px_rgba(0,0,0,0.42),0_0_42px_rgba(0,240,255,0.10)] backdrop-blur-2xl transition-all duration-300 hover:border-neon-blue/60 hover:shadow-[0_26px_90px_rgba(0,0,0,0.48),0_0_54px_rgba(0,240,255,0.24)]"
         >
           <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_18%_20%,rgba(0,240,255,0.22),transparent_28%),radial-gradient(circle_at_82%_70%,rgba(57,255,20,0.14),transparent_30%)]" />
           <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-2xl border border-neon-blue/35 bg-neon-blue/10 grid place-items-center text-neon-blue shadow-[0_0_34px_rgba(0,240,255,0.24)] transition-transform duration-300 group-hover:scale-110">
-                <BookOpen className="h-8 w-8" />
+              <div className="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-2xl border border-neon-blue/35 bg-neon-blue/10 grid place-items-center text-neon-blue shadow-[0_0_34px_rgba(0,240,255,0.24)] transition-transform duration-300 group-hover:scale-110">
+                <BookOpen className="h-7 w-7 sm:h-8 sm:w-8" />
               </div>
               <div>
                 <div className="mb-2 inline-flex items-center rounded-full border border-neon-green/25 bg-neon-green/10 px-3 py-1 text-[10px] font-mono font-bold tracking-[0.22em] text-neon-green">
                   PRACTICE
                 </div>
-                <h2 className="text-2xl md:text-4xl font-black tracking-tight text-white font-mono">Practice Problems</h2>
+                <h2 className="text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-white font-mono">Practice Problems</h2>
                 <p className="mt-2 max-w-2xl text-sm text-white/48 leading-relaxed">
                   Solve curated CODME problems, run tests, submit answers, and move through beginner to pro tracks.
                 </p>
               </div>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition-all duration-300 group-hover:translate-x-1 group-hover:border-neon-blue/40 group-hover:text-neon-blue">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition-all duration-300 group-hover:translate-x-1 group-hover:border-neon-blue/40 group-hover:text-neon-blue">
               <ArrowRight className="h-5 w-5" />
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function LanguageSelect() {
           <span className="h-px flex-1 bg-gradient-to-r from-white/5 via-white/12 to-transparent" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full">
           {LANGUAGES.map((lang, i) => (
             <motion.button
               key={lang.id}

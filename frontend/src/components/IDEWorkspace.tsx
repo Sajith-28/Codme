@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent, DragEvent } from 'react';
+import type { CSSProperties, ChangeEvent, DragEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import type { OnMount } from '@monaco-editor/react';
@@ -752,8 +752,8 @@ export default function IDEWorkspace() {
         )}
       </AnimatePresence>
 
-      <div className="h-full w-full grid grid-rows-[64px_1fr_32px] gap-2 p-2">
-        <header className="glass-panel ide-topbar flex items-center justify-between px-6 relative z-50 rounded-2xl border-white/15">
+      <div className="ide-workspace-frame h-full w-full grid grid-rows-[64px_1fr_32px] gap-2 p-2">
+        <header className="glass-panel ide-topbar ide-workspace-header flex items-center justify-between px-6 relative z-50 rounded-2xl border-white/15">
           <div className="flex items-center gap-5 min-w-0">
             <div className="flex items-center gap-3 pr-4 border-r border-white/10">
               <button onClick={() => navigate('/select')} className="icon-button h-10 w-10" title="Back to Selection">
@@ -833,8 +833,8 @@ export default function IDEWorkspace() {
         </header>
 
         <main
-          className="min-h-0 grid gap-2"
-          style={{ gridTemplateColumns: `280px minmax(360px, 1fr) 10px ${resultPanelWidth}px` }}
+          className="ide-main-grid min-h-0 grid gap-2"
+          style={{ '--result-panel-width': `${resultPanelWidth}px` } as CSSProperties}
         >
           <aside className="glass-panel min-h-0 flex flex-col overflow-hidden">
             <div className="h-11 px-4 border-b border-white/10 flex items-center justify-between">

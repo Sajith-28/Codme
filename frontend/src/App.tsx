@@ -10,7 +10,7 @@ const ProblemSolve = lazy(() => import('./components/ProblemSolve'));
 
 function AppContent() {
   return (
-    <div className="min-h-screen bg-background text-white font-sans overflow-hidden relative">
+    <div className="min-h-[100dvh] bg-background text-white font-sans overflow-x-hidden relative">
       <Toaster
         position="top-center"
         toastOptions={{

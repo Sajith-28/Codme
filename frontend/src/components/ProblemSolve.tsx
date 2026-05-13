@@ -158,17 +158,17 @@ export default function ProblemSolve() {
   }, [isBusy, results, stderrText, problem.testCases.length, language]);
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col text-white" style={{ background: '#080a10' }}>
+    <div className="min-h-[100dvh] w-full overflow-x-hidden overflow-y-auto md:h-screen md:w-screen md:overflow-hidden flex flex-col text-white" style={{ background: '#080a10' }}>
       {/* Top bar */}
-      <header className="h-14 flex items-center justify-between px-4 border-b border-white/5 shrink-0 relative z-50">
-        <div className="flex items-center gap-3">
+      <header className="min-h-14 flex flex-wrap items-center justify-between gap-3 px-3 md:px-4 py-2 border-b border-white/5 shrink-0 relative z-50">
+        <div className="flex items-center gap-3 min-w-0">
           <button onClick={() => navigate('/problems')} className="icon-button"><ArrowLeft className="h-4 w-4" /></button>
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-bold font-mono text-white truncate">{problem.title}</h1>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border" style={{ color: DIFFICULTY_COLORS[problem.difficulty], borderColor: DIFFICULTY_COLORS[problem.difficulty] + '40' }}>{problem.difficulty}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <LanguageDropdown
             value={language}
             onChange={(val) => useStore.getState().setLanguage(val)}
@@ -185,9 +185,9 @@ export default function ProblemSolve() {
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 flex gap-2 p-2">
+      <main className="flex-1 min-h-0 flex flex-col md:flex-row gap-2 p-2">
         {/* Left: Description */}
-        <div className="w-[30%] glass-panel flex flex-col min-w-[300px]">
+        <div className="w-full md:w-[30%] glass-panel flex flex-col min-w-0 md:min-w-[300px] min-h-[300px] md:min-h-0">
           <div className="flex border-b border-white/5">
             <button onClick={() => setActiveTab('description')} className={`px-4 py-2 text-xs font-mono transition-colors ${activeTab === 'description' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>Description</button>
             <button onClick={() => setActiveTab('info')} className={`px-4 py-2 text-xs font-mono transition-colors ${activeTab === 'info' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>Info</button>
@@ -227,7 +227,7 @@ export default function ProblemSolve() {
         </div>
 
         {/* Center: Editor */}
-        <div className="flex-1 glass-panel flex flex-col min-w-0">
+        <div className="flex-1 glass-panel flex flex-col min-w-0 min-h-[420px] md:min-h-0">
           <div className="h-10 flex items-center px-4 border-b border-white/5 text-[10px] font-mono text-white/30 bg-white/5">
             Solution.{language === 'python' ? 'py' : language === 'c' ? 'c' : 'cpp'}
           </div>
@@ -252,7 +252,7 @@ export default function ProblemSolve() {
         </div>
 
         {/* Right: Results & Debug */}
-        <div className="w-[25%] glass-panel flex flex-col min-w-[280px]">
+        <div className="w-full md:w-[25%] glass-panel flex flex-col min-w-0 md:min-w-[280px] min-h-[320px] md:min-h-0">
           <div className="flex border-b border-white/5">
             <button onClick={() => setActivePanel('results')} className={`px-4 py-2 text-xs font-mono transition-colors flex items-center gap-2 ${activePanel === 'results' ? 'text-neon-blue border-b-2 border-neon-blue' : 'text-white/40'}`}>
               <BrainCircuit className="h-3 w-3"/> Results

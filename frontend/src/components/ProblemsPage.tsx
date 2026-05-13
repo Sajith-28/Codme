@@ -42,13 +42,13 @@ export default function ProblemsPage() {
   if (!token) { navigate('/'); return null; }
 
   return (
-    <div className="problems-shell h-screen w-full flex flex-col relative overflow-hidden">
+    <div className="problems-shell min-h-[100dvh] md:h-screen w-full flex flex-col relative overflow-x-hidden md:overflow-hidden">
       <div className="lang-orb lang-orb-1" />
       <div className="lang-orb lang-orb-2" />
 
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 relative z-10 shrink-0">
-        <div className="flex items-center gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-4 border-b border-white/5 relative z-10 shrink-0">
+        <div className="flex items-center gap-3 md:gap-4 min-w-0">
           <button onClick={() => navigate('/select')} className="icon-button"><ArrowLeft className="h-4 w-4" /></button>
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg border border-neon-blue/40 bg-neon-blue/10 grid place-items-center">
@@ -59,9 +59,9 @@ export default function ProblemsPage() {
           <div className="h-4 w-[1px] bg-white/10 mx-2 hidden md:block" />
           <span className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em] font-bold hidden md:block">Practice Arena</span>
         </div>
-        <div className="flex items-center gap-3 p-1 bg-white/5 rounded-xl border border-white/5">
-          <button onClick={() => setView('problems')} className={`px-4 py-2 rounded-lg text-xs font-mono flex items-center gap-2 transition-all ${view==='problems'?'bg-white/10 text-white shadow-lg':'text-white/40 hover:text-white'}`}><BookOpen className="h-3.5 w-3.5"/>Problems</button>
-          <button onClick={() => setView('path')} className={`px-4 py-2 rounded-lg text-xs font-mono flex items-center gap-2 transition-all ${view==='path'?'bg-white/10 text-white shadow-lg':'text-white/40 hover:text-white'}`}><Zap className="h-3.5 w-3.5"/>Learning Path</button>
+        <div className="flex w-full sm:w-auto items-center gap-2 sm:gap-3 p-1 bg-white/5 rounded-xl border border-white/5 overflow-x-auto">
+          <button onClick={() => setView('problems')} className={`flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 rounded-lg text-xs font-mono flex items-center gap-2 transition-all whitespace-nowrap ${view==='problems'?'bg-white/10 text-white shadow-lg':'text-white/40 hover:text-white'}`}><BookOpen className="h-3.5 w-3.5"/>Problems</button>
+          <button onClick={() => setView('path')} className={`flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 rounded-lg text-xs font-mono flex items-center gap-2 transition-all whitespace-nowrap ${view==='path'?'bg-white/10 text-white shadow-lg':'text-white/40 hover:text-white'}`}><Zap className="h-3.5 w-3.5"/>Learning Path</button>
         </div>
       </header>
 
@@ -111,7 +111,7 @@ export default function ProblemsPage() {
           /* Problems Grid View */
           <div className="max-w-6xl mx-auto">
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4 mb-8 bg-white/5 p-4 rounded-2xl border border-white/5">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-8 bg-white/5 p-3 md:p-4 rounded-2xl border border-white/5">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
                 <Filter className="h-3.5 w-3.5 text-neon-blue" />
                 <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest font-bold">Filters</span>
@@ -135,7 +135,7 @@ export default function ProblemsPage() {
 
               <div className="h-8 w-[1px] bg-white/10 mx-2 hidden md:block" />
               
-              <span className="text-[10px] font-mono text-white/30 ml-auto flex items-center gap-4">
+              <span className="text-[10px] font-mono text-white/30 md:ml-auto flex w-full md:w-auto items-center justify-between md:justify-start gap-4">
                 <span className="flex items-center gap-1.5"><div className="h-1 w-1 rounded-full bg-neon-blue"/> {filtered.length} Problems</span>
                 <span className="flex items-center gap-1.5"><div className="h-1 w-1 rounded-full bg-neon-green"/> {solved.size} Solved</span>
               </span>
