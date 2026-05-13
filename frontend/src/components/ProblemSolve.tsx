@@ -43,6 +43,7 @@ export default function ProblemSolve() {
   const [debugHints, setDebugHints] = useState<DebugHints | null>(null);
   const [learnOpen, setLearnOpen] = useState(false);
   const [hasAwarded, setHasAwarded] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const complexity = useMemo(() => {
     if (results.length > 0 && !isBusy) return analyzeComplexity(code, language);
@@ -89,12 +90,28 @@ export default function ProblemSolve() {
     if (allPass && !hasAwarded) {
       markSolved(problem);
       setHasAwarded(true);
-      toast.success(`Accepted! +${problem.xp} XP earned`);
+      setShowSuccess(true);
       
-      // Automatically return to Problems Arena after successful submission
+      // Premium sequence of success feedback
+      toast.success(`Accepted! Great job on ${problem.title}!`, { icon: '🏆', duration: 4000 });
+      
+      setTimeout(() => {
+        toast(`+${problem.xp} XP Earned. Moving to Problems Arena...`, { 
+          icon: '⚡',
+          duration: 3000,
+          style: {
+            background: '#0a0a0f',
+            color: '#00f0ff',
+            border: '1px solid #00f0ff33',
+            fontSize: '13px',
+            fontWeight: '600'
+          }
+        });
+      }, 1000);
+
       setTimeout(() => {
         navigate('/problems');
-      }, 2000);
+      }, 4000);
     }
     if (stderrText.trim()) {
       const src = code;
@@ -329,6 +346,61 @@ export default function ProblemSolve() {
       </main>
 
       <LearnModal problem={learnOpen ? problem : null} onClose={() => setLearnOpen(false)} />
+
+      {/* Success Celebration Overlay */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+              className="relative max-w-sm w-full p-8 text-center"
+            >
+              <div className="absolute inset-0 bg-neon-blue/10 blur-[100px] rounded-full" />
+              <div className="relative glass-panel p-10 rounded-[32px] border-neon-blue/30 shadow-[0_0_50px_rgba(0,240,255,0.25)] bg-[#0a0a0f]/80">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring' }}
+                  className="mx-auto mb-6 h-20 w-20 rounded-2xl bg-gradient-to-br from-neon-blue to-neon-purple p-0.5"
+                >
+                  <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[#0a0a0f]">
+                    <Trophy className="h-10 w-10 text-neon-blue animate-pulse" />
+                  </div>
+                </motion.div>
+                
+                <h2 className="text-3xl font-black tracking-tight text-white font-syncopate mb-2 uppercase italic">Solved!</h2>
+                <p className="text-neon-blue font-mono text-[10px] tracking-[0.3em] mb-8 uppercase font-bold opacity-80">Challenge Mastered</p>
+                
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between px-5 py-4 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <span className="text-[10px] font-mono uppercase text-white/30 tracking-widest">XP Awarded</span>
+                    <span className="text-neon-green font-black text-xl leading-none">+{problem.xp} XP</span>
+                  </div>
+                  
+                  <div className="mt-6 flex flex-col items-center gap-3">
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: '100%' }}
+                        transition={{ duration: 3.8, ease: 'linear' }}
+                        className="h-full bg-gradient-to-r from-neon-blue to-neon-purple shadow-[0_0_15px_#00f0ff]"
+                      />
+                    </div>
+                    <span className="text-[9px] font-mono text-white/30 uppercase tracking-[0.4em] font-bold">Arena Re-entry In Progress</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
