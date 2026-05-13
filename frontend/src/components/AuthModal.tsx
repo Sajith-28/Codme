@@ -47,11 +47,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       // 1. Health check (Fail gracefully if backend is down)
       try {
         const healthRes = await fetch(`${apiBase}/health`, {
-          signal: AbortSignal.timeout(3000) // 3 seconds timeout
+          signal: AbortSignal.timeout(10000) // 10 seconds timeout for Render cold starts
         });
         if (!healthRes.ok) throw new Error();
       } catch (error) {
-        throw new Error('Backend health check failed. Start FastAPI on port 8000, then retry authentication.', { cause: error });
+        throw new Error('Backend connectivity issue. The server might be waking up or unreachable. Please wait 10 seconds and try again.', { cause: error });
       }
 
       // 2. Authentication
