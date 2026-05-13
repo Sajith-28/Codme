@@ -20,7 +20,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   
   const { setToken } = useStore();
   const navigate = useNavigate();
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://codme-1.onrender.com';
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://codme-backend.onrender.com';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

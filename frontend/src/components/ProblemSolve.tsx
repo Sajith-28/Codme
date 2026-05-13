@@ -14,7 +14,7 @@ import AITutor from './AITutor';
 import { markSolved } from '../utils/progress';
 import { loadCode, saveCode, loadLastResults, saveLastResults } from '../utils/persistence';
 
-const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-1.onrender.com';
+const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-backend.onrender.com';
 const monacoLangMap: Record<string, string> = { java: 'java', python: 'python', c: 'c', cpp: 'cpp' };
 
 type TestRunResult = {
@@ -90,6 +90,11 @@ export default function ProblemSolve() {
       markSolved(problem);
       setHasAwarded(true);
       toast.success(`Accepted! +${problem.xp} XP earned`);
+      
+      // Automatically return to Problems Arena after successful submission
+      setTimeout(() => {
+        navigate('/problems');
+      }, 2000);
     }
     if (stderrText.trim()) {
       const src = code;
@@ -126,9 +131,9 @@ export default function ProblemSolve() {
           ws.close();
           setStatus('Connection Timeout');
           setIsBusy(false);
-          toast.error('Connection timed out. Please retry.');
+          toast.error('Execution backend is unreachable right now. Please retry.');
         }
-      }, 5000);
+      }, 15000);
 
       ws.onopen = () => {
         window.clearTimeout(connectionTimeout);

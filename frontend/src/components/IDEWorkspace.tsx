@@ -88,7 +88,7 @@ type ExecutionMessage = {
 
 const projectStorageKeyBase = 'codme_project_v1';
 const resultPanelWidthKey = 'codme_result_panel_width';
-const apiBase = (import.meta.env.VITE_API_BASE_URL || 'https://codme-1.onrender.com').replace(/\/$/, '');
+const apiBase = (import.meta.env.VITE_API_BASE_URL || 'https://codme-backend.onrender.com').replace(/\/$/, '');
 const wsBase = (import.meta.env.VITE_WS_URL || apiBase.replace(/^http/, 'ws')).replace(/\/$/, '');
 
 const languageMeta: Record<SupportedLanguage, { label: string; extension: string; mainFile: string; monaco: string }> = {
@@ -515,7 +515,7 @@ export default function IDEWorkspace() {
       };
       const handleOpen = () => finish(socket);
       const handleFailure = () => finish(null);
-      const timeoutId = window.setTimeout(() => finish(null), 4500);
+      const timeoutId = window.setTimeout(() => finish(null), 15000);
 
       socket.addEventListener('open', handleOpen);
       socket.addEventListener('error', handleFailure);
@@ -554,7 +554,7 @@ export default function IDEWorkspace() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...payload, token }),
-        signal: AbortSignal.timeout(45000),
+        signal: AbortSignal.timeout(60000),
       });
       const data = await response.json();
       if (!response.ok) {
