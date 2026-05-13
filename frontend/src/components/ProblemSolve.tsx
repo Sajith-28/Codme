@@ -12,6 +12,7 @@ import LanguageDropdown from './LanguageDropdown';
 import LearnModal from './LearnModal';
 import AITutor from './AITutor';
 import { markSolved } from '../utils/progress';
+import { loadCode, saveCode, loadLastResults, saveLastResults } from '../utils/persistence';
 
 const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-1.onrender.com';
 const monacoLangMap: Record<string, string> = { java: 'java', python: 'python', c: 'c', cpp: 'cpp' };
@@ -54,13 +55,32 @@ export default function ProblemSolve() {
 
   useEffect(() => {
     if (!problem) return;
-    setCode(problem.starterCode[language]);
-    setResults([]);
+    const saved = loadCode(problem.id, language, problem.starterCode[language]);
+    setCode(saved);
+    
+    const savedResults = loadLastResults(problem.id, language);
+    if (savedResults) {
+      setResults(savedResults.results);
+      setStatus(savedResults.status);
+    } else {
+      setResults([]);
+      setStatus('Idle');
+    }
+    
     setStdoutText('');
     setStderrText('');
-    setStatus('Idle');
     setHasAwarded(false);
   }, [problem, language, setCode]);
+
+  useEffect(() => {
+    if (!problem || !code) return;
+    saveCode(problem.id, language, code);
+  }, [code, problem, language]);
+
+  useEffect(() => {
+    if (!problem || results.length === 0) return;
+    saveLastResults(problem.id, language, results, status);
+  }, [results, status, problem, language]);
 
   useEffect(() => {
     if (!problem || isBusy || results.length === 0) return;
