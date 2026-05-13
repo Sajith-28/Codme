@@ -293,7 +293,7 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
         const bookmarked = summary.bookmarkedSet.has(problem.id);
         const favorite = summary.favoriteSet.has(problem.id);
         return (
-          <TiltCard key={problem.id}>
+          <TiltCard key={problem.id} className="w-full">
             <motion.article
               layout
               initial={{ opacity: 0, y: 18 }}
@@ -328,12 +328,12 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
                 <span>{problem.timeComplexity}</span>
               </div>
 
-              <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2">
+              <div className="flex flex-wrap items-center gap-2 mt-auto">
                 <button className="tool-button px-3 text-xs" onClick={() => onLearn(problem)}>
                   Learn
                 </button>
                 <button 
-                  className={`px-3 text-[11px] font-bold rounded-lg h-9 transition-all duration-300 flex items-center justify-center gap-2 ${solved ? 'bg-neon-green text-black shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:scale-105 active:scale-95' : 'run-button'}`} 
+                  className={`px-4 flex-1 min-w-[80px] text-[11px] font-bold rounded-lg h-9 transition-all duration-300 flex items-center justify-center gap-2 ${solved ? 'bg-neon-green text-black shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:scale-105 active:scale-95' : 'run-button'}`} 
                   disabled={!unlocked} 
                   onClick={() => navigate(`/problems/${problem.id}`)}
                 >
