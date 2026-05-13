@@ -51,8 +51,9 @@ export default function TiltCard({ children, className = "" }: Props) {
         rotateY,
         zIndex,
         transformStyle: "preserve-3d",
+        backfaceVisibility: "hidden",
       }}
-      className={`relative ${className}`}
+      className={`relative will-change-transform ${className}`}
     >
       <div style={{ transform: "translateZ(20px)", transformStyle: "preserve-3d" }}>
         {children}

@@ -124,7 +124,7 @@ export default function ProblemsPage() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto w-full max-w-7xl space-y-5 px-4 py-5 md:px-6 md:py-7">
+      <main className="relative z-10 mx-auto w-full max-w-[1600px] space-y-5 px-4 py-5 md:px-8 md:py-8">
         <section className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
           <div className="rounded-2xl border border-white/10 bg-[linear-gradient(135deg,rgba(0,240,255,0.12),rgba(255,255,255,0.04)_45%,rgba(57,255,20,0.07))] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.34)] backdrop-blur-2xl">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -158,7 +158,7 @@ export default function ProblemsPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
+        <section className="grid gap-4 lg:grid-cols-[280px_1fr] mt-5">
           <aside className="space-y-4">
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
               <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.24em] text-white/35">
@@ -263,8 +263,8 @@ export default function ProblemsPage() {
 
 function Metric({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: string; tone: string }) {
   return (
-    <TiltCard>
-      <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
+    <TiltCard className="h-full">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl h-full">
         <div className={`mb-3 inline-flex rounded-lg border border-white/10 bg-white/5 p-2 ${tone}`}>{icon}</div>
         <p className="text-[10px] font-mono uppercase tracking-[0.24em] text-white/35">{label}</p>
         <p className="mt-1 text-2xl font-black text-white">{value}</p>
@@ -285,7 +285,7 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 [perspective:2000px] mt-6 p-8 pb-20">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 [perspective:2000px] mt-6 pb-20">
       {problems.map((problem) => {
         const index = PROBLEMS.findIndex((item) => item.id === problem.id);
         const solved = summary.solvedSet.has(problem.id);
@@ -298,7 +298,7 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
               layout
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`problem-card group flex h-full flex-col text-left transition-all duration-500 ${!unlocked ? 'opacity-60' : ''} ${solved ? 'border-neon-green/30 bg-neon-green/[0.04] shadow-[0_0_30px_rgba(57,255,20,0.08)]' : ''}`}
+              className={`problem-card group flex h-full flex-col text-left transition-all duration-500 bg-white/[0.035] p-5 rounded-2xl border border-white/10 backdrop-blur-xl ${!unlocked ? 'opacity-60' : ''} ${solved ? 'border-neon-green/30 bg-neon-green/[0.04] shadow-[0_0_30px_rgba(57,255,20,0.08)]' : ''}`}
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
@@ -320,7 +320,6 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
               <div className="my-4 flex flex-wrap gap-1.5">
                 <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.topic}</span>
                 <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.rankTier}</span>
-                <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.rankTier === 'Beginner' ? 'Beginner' : problem.rankTier}</span>
               </div>
 
               <div className="mb-4 flex items-center justify-between text-[10px] font-mono text-white/30">
