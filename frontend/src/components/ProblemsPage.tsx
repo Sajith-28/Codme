@@ -295,7 +295,6 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
         return (
           <TiltCard key={problem.id} className="w-full">
             <motion.article
-              layout
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               className={`problem-card group flex h-full flex-col text-left transition-all duration-500 bg-white/[0.035] p-5 rounded-2xl border border-white/10 backdrop-blur-xl ${!unlocked ? 'opacity-60' : ''} ${solved ? 'border-neon-green/30 bg-neon-green/[0.04] shadow-[0_0_30px_rgba(57,255,20,0.08)]' : ''}`}

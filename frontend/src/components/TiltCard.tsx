@@ -52,10 +52,11 @@ export default function TiltCard({ children, className = "" }: Props) {
         zIndex,
         transformStyle: "preserve-3d",
         backfaceVisibility: "hidden",
+        WebkitFontSmoothing: "antialiased",
       }}
       className={`relative will-change-transform ${className}`}
     >
-      <div style={{ transform: "translateZ(20px)", transformStyle: "preserve-3d" }}>
+      <div style={{ transform: "translateZ(20px)", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}>
         {children}
       </div>
     </motion.div>
