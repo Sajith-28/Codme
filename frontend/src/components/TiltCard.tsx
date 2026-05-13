@@ -15,8 +15,8 @@ export default function TiltCard({ children, className = "" }: Props) {
   const mouseXSpring = useSpring(x);
   const mouseYSpring = useSpring(y);
 
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7deg", "-7deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7deg", "7deg"]);
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["5deg", "-5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
   const zIndex = useTransform(mouseXSpring, (v) => v === 0 ? 1 : 50);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -54,7 +54,7 @@ export default function TiltCard({ children, className = "" }: Props) {
       }}
       className={`relative ${className}`}
     >
-      <div style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
+      <div style={{ transform: "translateZ(20px)", transformStyle: "preserve-3d" }}>
         {children}
       </div>
     </motion.div>

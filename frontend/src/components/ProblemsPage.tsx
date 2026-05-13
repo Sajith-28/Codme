@@ -285,7 +285,7 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 [perspective:1200px] mt-6">
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 [perspective:2000px] mt-6 p-8 pb-20">
       {problems.map((problem) => {
         const index = PROBLEMS.findIndex((item) => item.id === problem.id);
         const solved = summary.solvedSet.has(problem.id);
