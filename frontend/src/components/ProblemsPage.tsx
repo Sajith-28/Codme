@@ -16,6 +16,7 @@ import {
   type RankTier,
   type Topic,
 } from '../data/problems';
+import TiltCard from './TiltCard';
 import {
   ArrowLeft,
   Bell,
@@ -28,6 +29,7 @@ import {
   GraduationCap,
   Heart,
   Layers,
+  RotateCw,
   LineChart,
   Lock,
   Search,
@@ -261,11 +263,13 @@ export default function ProblemsPage() {
 
 function Metric({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: string; tone: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
-      <div className={`mb-3 inline-flex rounded-lg border border-white/10 bg-white/5 p-2 ${tone}`}>{icon}</div>
-      <p className="text-[10px] font-mono uppercase tracking-[0.24em] text-white/35">{label}</p>
-      <p className="mt-1 text-2xl font-black text-white">{value}</p>
-    </div>
+    <TiltCard>
+      <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
+        <div className={`mb-3 inline-flex rounded-lg border border-white/10 bg-white/5 p-2 ${tone}`}>{icon}</div>
+        <p className="text-[10px] font-mono uppercase tracking-[0.24em] text-white/35">{label}</p>
+        <p className="mt-1 text-2xl font-black text-white">{value}</p>
+      </div>
+    </TiltCard>
   );
 }
 
@@ -281,7 +285,7 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 [perspective:1200px]">
       {problems.map((problem) => {
         const index = PROBLEMS.findIndex((item) => item.id === problem.id);
         const solved = summary.solvedSet.has(problem.id);
@@ -289,64 +293,65 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
         const bookmarked = summary.bookmarkedSet.has(problem.id);
         const favorite = summary.favoriteSet.has(problem.id);
         return (
-          <motion.article
-            key={problem.id}
-            layout
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`problem-card group flex min-h-[260px] flex-col text-left transition-all duration-500 ${!unlocked ? 'opacity-60' : ''} ${solved ? 'border-neon-green/30 bg-neon-green/[0.04] shadow-[0_0_30px_rgba(57,255,20,0.08)]' : ''}`}
-          >
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-all duration-500 ${solved ? 'border-neon-green/60 bg-neon-green text-black scale-110 shadow-[0_0_15px_rgba(57,255,20,0.4)]' : unlocked ? 'border-neon-blue/30 bg-neon-blue/10 text-neon-blue' : 'border-white/10 bg-white/5 text-white/25'}`}>
-                  {solved ? <CheckCircle2 className="h-4 w-4 stroke-[3px]" /> : unlocked ? <span className="text-xs font-black">{problem.order}</span> : <Lock className="h-4 w-4" />}
+          <TiltCard key={problem.id}>
+            <motion.article
+              layout
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`problem-card group flex h-full flex-col text-left transition-all duration-500 ${!unlocked ? 'opacity-60' : ''} ${solved ? 'border-neon-green/30 bg-neon-green/[0.04] shadow-[0_0_30px_rgba(57,255,20,0.08)]' : ''}`}
+            >
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-all duration-500 ${solved ? 'border-neon-green/60 bg-neon-green text-black scale-110 shadow-[0_0_15px_rgba(57,255,20,0.4)]' : unlocked ? 'border-neon-blue/30 bg-neon-blue/10 text-neon-blue' : 'border-white/10 bg-white/5 text-white/25'}`}>
+                    {solved ? <CheckCircle2 className="h-4 w-4 stroke-[3px]" /> : unlocked ? <span className="text-xs font-black">{problem.order}</span> : <Lock className="h-4 w-4" />}
+                  </div>
+                  <div>
+                    <h3 className={`text-sm font-bold transition-colors ${solved ? 'text-neon-green' : 'text-white/90'}`}>{problem.title}</h3>
+                    <p className="mt-0.5 text-[10px] font-mono uppercase tracking-[0.18em] text-white/25">{problem.subtopic}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className={`text-sm font-bold transition-colors ${solved ? 'text-neon-green' : 'text-white/90'}`}>{problem.title}</h3>
-                  <p className="mt-0.5 text-[10px] font-mono uppercase tracking-[0.18em] text-white/25">{problem.subtopic}</p>
-                </div>
+                <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-mono" style={{ color: solved ? '#39ff14' : DIFFICULTY_COLORS[problem.difficulty], borderColor: solved ? 'rgba(57,255,20,0.4)' : `${DIFFICULTY_COLORS[problem.difficulty]}55`, background: solved ? 'rgba(57,255,20,0.1)' : `${DIFFICULTY_COLORS[problem.difficulty]}10` }}>
+                  {problem.difficulty}
+                </span>
               </div>
-              <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-mono" style={{ color: solved ? '#39ff14' : DIFFICULTY_COLORS[problem.difficulty], borderColor: solved ? 'rgba(57,255,20,0.4)' : `${DIFFICULTY_COLORS[problem.difficulty]}55`, background: solved ? 'rgba(57,255,20,0.1)' : `${DIFFICULTY_COLORS[problem.difficulty]}10` }}>
-                {problem.difficulty}
-              </span>
-            </div>
 
-            <p className="line-clamp-3 flex-1 text-xs leading-relaxed text-white/45">{problem.beginnerExplanation}</p>
+              <p className="line-clamp-3 flex-1 text-xs leading-relaxed text-white/45">{problem.beginnerExplanation}</p>
 
-            <div className="my-4 flex flex-wrap gap-1.5">
-              <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.topic}</span>
-              <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.rankTier}</span>
-              <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.xp} XP</span>
-            </div>
+              <div className="my-4 flex flex-wrap gap-1.5">
+                <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.topic}</span>
+                <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.rankTier}</span>
+                <span className={`rounded px-2 py-1 text-[10px] font-mono ${solved ? 'bg-neon-green/10 text-neon-green/60' : 'bg-white/5 text-white/30'}`}>{problem.rankTier === 'Beginner' ? 'Beginner' : problem.rankTier}</span>
+              </div>
 
-            <div className="mb-4 flex items-center justify-between text-[10px] font-mono text-white/30">
-              <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {problem.timeEstimate}m</span>
-              <span>{problem.timeComplexity}</span>
-            </div>
+              <div className="mb-4 flex items-center justify-between text-[10px] font-mono text-white/30">
+                <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {problem.timeEstimate}m</span>
+                <span>{problem.timeComplexity}</span>
+              </div>
 
-            <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2">
-              <button className="tool-button px-3 text-xs" onClick={() => onLearn(problem)}>
-                Learn
-              </button>
-              <button 
-                className={`px-3 text-[11px] font-bold rounded-lg h-9 transition-all duration-300 flex items-center justify-center gap-2 ${solved ? 'bg-neon-green text-black shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:scale-105 active:scale-95' : 'run-button'}`} 
-                disabled={!unlocked} 
-                onClick={() => navigate(`/problems/${problem.id}`)}
-              >
-                {solved ? (
-                  <><RotateCw className="h-3 w-3" /> REVIEW</>
-                ) : (
-                  'SOLVE'
-                )}
-              </button>
-              <button className={`icon-button ${bookmarked ? 'text-neon-blue' : ''}`} onClick={() => { toggleBookmark(problem.id); onRefresh(); }} title="Bookmark">
-                <Bookmark className="h-4 w-4" />
-              </button>
-              <button className={`icon-button ${favorite ? 'text-red-300' : ''}`} onClick={() => { toggleFavorite(problem.id); onRefresh(); }} title="Favorite">
-                <Heart className="h-4 w-4" />
-              </button>
-            </div>
-          </motion.article>
+              <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2">
+                <button className="tool-button px-3 text-xs" onClick={() => onLearn(problem)}>
+                  Learn
+                </button>
+                <button 
+                  className={`px-3 text-[11px] font-bold rounded-lg h-9 transition-all duration-300 flex items-center justify-center gap-2 ${solved ? 'bg-neon-green text-black shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:scale-105 active:scale-95' : 'run-button'}`} 
+                  disabled={!unlocked} 
+                  onClick={() => navigate(`/problems/${problem.id}`)}
+                >
+                  {solved ? (
+                    <><RotateCw className="h-3 w-3" /> REVIEW</>
+                  ) : (
+                    'SOLVE'
+                  )}
+                </button>
+                <button className={`icon-button ${bookmarked ? 'text-neon-blue' : ''}`} onClick={() => { toggleBookmark(problem.id); onRefresh(); }} title="Bookmark">
+                  <Bookmark className="h-4 w-4" />
+                </button>
+                <button className={`icon-button ${favorite ? 'text-red-300' : ''}`} onClick={() => { toggleFavorite(problem.id); onRefresh(); }} title="Favorite">
+                  <Heart className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.article>
+          </TiltCard>
         );
       })}
     </div>
