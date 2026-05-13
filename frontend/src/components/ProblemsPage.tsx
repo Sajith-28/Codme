@@ -196,15 +196,15 @@ export default function ProblemsPage() {
           <section className="space-y-4">
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3 backdrop-blur-xl">
               <div className="grid gap-3 xl:grid-cols-[1fr_auto]">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-blue/70" />
-                  <input
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    className="ide-input h-11 pl-10"
-                    placeholder="Search problems, topics, patterns..."
-                  />
-                </div>
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-blue/70" />
+                    <input
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      className="ide-input h-11 !pl-12"
+                      placeholder="Search problems, topics, patterns..."
+                    />
+                  </div>
                 <div className="grid gap-2 sm:grid-cols-3">
                   <CustomSelect value={diffFilter} onChange={(value) => setDiffFilter(value as Difficulty | 'all')} options={diffOptions} placeholder="Difficulty" icon={<Layers className="h-3.5 w-3.5" />} />
                   <CustomSelect value={topicFilter} onChange={(value) => setTopicFilter(value as Topic | 'all')} options={topicOptions} placeholder="Topic" icon={<Tag className="h-3.5 w-3.5" />} />
