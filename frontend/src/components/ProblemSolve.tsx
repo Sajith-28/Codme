@@ -265,9 +265,9 @@ export default function ProblemSolve() {
           </div>
         </section>
 
-        <aside className="flex min-h-[520px] w-full min-w-0 flex-col gap-2 md:min-h-0 md:w-[30%] md:min-w-[320px]">
+        <aside className="flex min-h-[520px] w-full min-w-0 flex-col gap-2 md:h-full md:min-h-0 md:w-[30%] md:min-w-[320px] md:overflow-y-auto custom-scrollbar pb-4">
           <AITutor problem={problem} language={language} code={code} />
-          <section className="glass-panel grid min-h-[320px] flex-1 grid-rows-[42px_1fr] overflow-hidden">
+          <section className="glass-panel grid min-h-[280px] flex-shrink-0 grid-rows-[42px_1fr] overflow-hidden">
             <div className="flex overflow-x-auto border-b border-white/5">
               {(['results', 'stdout', 'debug'] as const).map((panel) => (
                 <button key={panel} onClick={() => setActivePanel(panel)} className={`px-4 py-2 text-xs font-mono capitalize transition-colors ${activePanel === panel ? 'border-b-2 border-neon-blue text-neon-blue' : 'text-white/40'}`}>
