@@ -72,6 +72,11 @@ export default function ProblemSolve() {
     setStdoutText('');
     setStderrText('');
     setHasAwarded(false);
+    setShowSuccess(false);
+    setIsSubmission(false);
+    setIsBusy(false);
+    setDebugHints(null);
+    setActivePanel('results');
   }, [problem, language, setCode]);
 
   useEffect(() => {
