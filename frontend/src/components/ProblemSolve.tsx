@@ -44,6 +44,7 @@ export default function ProblemSolve() {
   const [learnOpen, setLearnOpen] = useState(false);
   const [hasAwarded, setHasAwarded] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmission, setIsSubmission] = useState(false);
 
   const complexity = useMemo(() => {
     if (results.length > 0 && !isBusy) return analyzeComplexity(code, language);
@@ -85,40 +86,51 @@ export default function ProblemSolve() {
 
   useEffect(() => {
     if (!problem || isBusy || results.length === 0) return;
-    const allPass = results.length === problem.testCases.length && results.every((result) => result.verdict === 'PASS');
-    setStatus(allPass ? 'Accepted' : 'Results Ready');
-    if (allPass && !hasAwarded) {
-      markSolved(problem);
-      setHasAwarded(true);
-      setShowSuccess(true);
-      
-      // Premium sequence of success feedback
-      toast.success(`Accepted! Great job on ${problem.title}!`, { icon: '🏆', duration: 4000 });
-      
-      setTimeout(() => {
-        toast(`+${problem.xp} XP Earned. Moving to Problems Arena...`, { 
-          icon: '⚡',
-          duration: 3000,
-          style: {
-            background: '#0a0a0f',
-            color: '#00f0ff',
-            border: '1px solid #00f0ff33',
-            fontSize: '13px',
-            fontWeight: '600'
-          }
-        });
-      }, 1000);
+    
+    const expectedTestCount = isSubmission 
+      ? (problem.testCases.length + (problem.hiddenTestCases?.length || 0)) 
+      : Math.min(2, problem.testCases.length);
 
-      setTimeout(() => {
-        navigate('/problems');
-      }, 4000);
+    const allPass = results.length === expectedTestCount && results.every((result) => result.verdict === 'PASS');
+    
+    if (allPass && isSubmission) {
+      setStatus('Accepted');
+      if (!hasAwarded) {
+        markSolved(problem);
+        setHasAwarded(true);
+        setShowSuccess(true);
+        
+        // Premium sequence of success feedback
+        toast.success(`Accepted! Great job on ${problem.title}!`, { icon: '🏆', duration: 4000 });
+        
+        setTimeout(() => {
+          toast(`+${problem.xp} XP Earned. Moving to Problems Arena...`, { 
+            icon: '⚡',
+            duration: 3000,
+            style: {
+              background: '#0a0a0f',
+              color: '#00f0ff',
+              border: '1px solid #00f0ff33',
+              fontSize: '13px',
+              fontWeight: '600'
+            }
+          });
+        }, 1000);
+
+        setTimeout(() => {
+          navigate('/problems');
+        }, 4000);
+      }
+    } else if (results.length === expectedTestCount) {
+      setStatus('Results Ready');
     }
+
     if (stderrText.trim()) {
       const src = code;
       setDebugHints(analyzeError(src, stderrText, language));
       setActivePanel('debug');
     }
-  }, [isBusy, results, stderrText, problem, language, code, hasAwarded]);
+  }, [isBusy, results, stderrText, problem, language, code, hasAwarded, isSubmission, navigate, markSolved]);
 
   if (!problem) return <div className="min-h-screen bg-[#080a10] p-8 text-center text-white">Problem not found</div>;
 
@@ -129,6 +141,7 @@ export default function ProblemSolve() {
       return;
     }
 
+    setIsSubmission(submit);
     setIsBusy(true);
     setResults([]);
     setStdoutText('');
@@ -155,7 +168,9 @@ export default function ProblemSolve() {
       ws.onopen = () => {
         window.clearTimeout(connectionTimeout);
         setStatus('Running...');
-        const cases = submit ? problem.testCases : problem.testCases.slice(0, 2);
+        const cases = submit 
+          ? [...problem.testCases, ...(problem.hiddenTestCases || [])] 
+          : problem.testCases.slice(0, 2);
         ws.send(JSON.stringify({
           action: 'execute',
           code: src,
@@ -318,7 +333,7 @@ export default function ProblemSolve() {
               ))}
             </div>
             <div className="custom-scrollbar overflow-auto p-4">
-              {activePanel === 'results' && <ResultsPanel results={results} isBusy={isBusy} status={status} problemTestCount={problem.testCases.length} complexity={complexity} />}
+              {activePanel === 'results' && <ResultsPanel results={results} isBusy={isBusy} status={status} problemTestCount={isSubmission ? (problem.testCases.length + (problem.hiddenTestCases?.length || 0)) : Math.min(2, problem.testCases.length)} complexity={complexity} />}
               {activePanel === 'stdout' && <pre className="min-h-[180px] whitespace-pre-wrap rounded-xl border border-white/5 bg-black/35 p-4 text-xs text-white/75">{stdoutText || results.map((result, index) => `--- Test ${index + 1} ---\n${result.got || '(no output)'}`).join('\n\n') || 'No output yet. Click RUN to execute.'}</pre>}
               {activePanel === 'debug' && (
                 <div className="space-y-3">

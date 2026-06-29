@@ -1,4 +1,4 @@
-import type { SupportedLanguage } from '../store/useStore';
+import type { SupportedLanguage } from '../../store/useStore';
 
 export type Difficulty = 'Basic' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Master';
 export type RankTier = 'Beginner' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Master' | 'Grandmaster' | 'Iridescent';

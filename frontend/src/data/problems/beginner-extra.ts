@@ -52,4 +52,601 @@ export const beginnerExtraSeeds: ProblemSeed[] = [
   { title: 'Smallest Divisor Finder', slug: 'smallest-divisor', difficulty: 'Beginner', rankTier: 'Silver', topic: 'loops', subtopic: 'divisor', shortGoal: 'Find smallest divisor > 1.', outcome: 'Start loop from 2.', time: 8, prereq: ['Loops'], tests: [{ input: '15', expected: '3' }], complexity: ['O(sqrt n)', 'O(1)'], companies: ['General'], frequency: 7 },
   { title: 'Perfect Number Check', slug: 'perfect-number', difficulty: 'Beginner', rankTier: 'Silver', topic: 'loops', subtopic: 'math', shortGoal: 'Check if number equals sum of proper divisors.', outcome: 'Find all divisors and sum.', time: 12, prereq: ['Loops'], tests: [{ input: '6', expected: 'Yes' }, { input: '10', expected: 'No' }], complexity: ['O(n)', 'O(1)'], companies: ['General'], frequency: 7 },
   { title: 'Concatenate N Times', slug: 'concat-n-times', difficulty: 'Basic', rankTier: 'Beginner', topic: 'strings', subtopic: 'concatenation', shortGoal: 'Repeat a string N times.', outcome: 'Build string with a loop.', time: 8, prereq: ['Loops'], tests: [{ input: 'hi 3', expected: 'hihihi' }], complexity: ['O(n)', 'O(n)'], companies: ['General'], frequency: 6 },
+  {
+  "title": "Count Digits in a Number",
+  "slug": "count-digits-in-a-number",
+  "difficulty": "Basic",
+  "rankTier": "Beginner",
+  "topic": "loops",
+  "subtopic": "digit processing",
+  "shortGoal": "Count the number of digits in N.",
+  "outcome": "Use division or logs to count digits.",
+  "time": 5,
+  "prereq": [
+    "Loops",
+    "Modulo"
+  ],
+  "tests": [
+    {
+      "input": "12345",
+      "expected": "5"
+    },
+    {
+      "input": "7789",
+      "expected": "4"
+    }
+  ],
+  "hiddenTests": [
+    {
+      "input": "1",
+      "expected": "1"
+    },
+    {
+      "input": "2",
+      "expected": "1"
+    },
+    {
+      "input": "3",
+      "expected": "1"
+    },
+    {
+      "input": "4",
+      "expected": "1"
+    },
+    {
+      "input": "5",
+      "expected": "1"
+    },
+    {
+      "input": "6",
+      "expected": "1"
+    },
+    {
+      "input": "7",
+      "expected": "1"
+    },
+    {
+      "input": "8",
+      "expected": "1"
+    },
+    {
+      "input": "9",
+      "expected": "1"
+    },
+    {
+      "input": "10",
+      "expected": "2"
+    },
+    {
+      "input": "17",
+      "expected": "2"
+    },
+    {
+      "input": "24",
+      "expected": "2"
+    },
+    {
+      "input": "31",
+      "expected": "2"
+    },
+    {
+      "input": "38",
+      "expected": "2"
+    },
+    {
+      "input": "45",
+      "expected": "2"
+    },
+    {
+      "input": "52",
+      "expected": "2"
+    },
+    {
+      "input": "59",
+      "expected": "2"
+    },
+    {
+      "input": "66",
+      "expected": "2"
+    },
+    {
+      "input": "73",
+      "expected": "2"
+    },
+    {
+      "input": "80",
+      "expected": "2"
+    },
+    {
+      "input": "87",
+      "expected": "2"
+    },
+    {
+      "input": "100",
+      "expected": "3"
+    },
+    {
+      "input": "157",
+      "expected": "3"
+    },
+    {
+      "input": "214",
+      "expected": "3"
+    },
+    {
+      "input": "271",
+      "expected": "3"
+    },
+    {
+      "input": "328",
+      "expected": "3"
+    },
+    {
+      "input": "385",
+      "expected": "3"
+    },
+    {
+      "input": "442",
+      "expected": "3"
+    },
+    {
+      "input": "499",
+      "expected": "3"
+    },
+    {
+      "input": "556",
+      "expected": "3"
+    },
+    {
+      "input": "613",
+      "expected": "3"
+    },
+    {
+      "input": "670",
+      "expected": "3"
+    },
+    {
+      "input": "727",
+      "expected": "3"
+    },
+    {
+      "input": "784",
+      "expected": "3"
+    },
+    {
+      "input": "841",
+      "expected": "3"
+    },
+    {
+      "input": "898",
+      "expected": "3"
+    },
+    {
+      "input": "955",
+      "expected": "3"
+    },
+    {
+      "input": "1000",
+      "expected": "4"
+    },
+    {
+      "input": "1631",
+      "expected": "4"
+    },
+    {
+      "input": "2262",
+      "expected": "4"
+    },
+    {
+      "input": "2893",
+      "expected": "4"
+    },
+    {
+      "input": "3524",
+      "expected": "4"
+    },
+    {
+      "input": "4155",
+      "expected": "4"
+    },
+    {
+      "input": "4786",
+      "expected": "4"
+    },
+    {
+      "input": "5417",
+      "expected": "4"
+    },
+    {
+      "input": "6048",
+      "expected": "4"
+    },
+    {
+      "input": "6679",
+      "expected": "4"
+    },
+    {
+      "input": "7310",
+      "expected": "4"
+    },
+    {
+      "input": "7941",
+      "expected": "4"
+    },
+    {
+      "input": "8572",
+      "expected": "4"
+    },
+    {
+      "input": "9203",
+      "expected": "4"
+    },
+    {
+      "input": "9834",
+      "expected": "4"
+    },
+    {
+      "input": "10000",
+      "expected": "5"
+    },
+    {
+      "input": "16311",
+      "expected": "5"
+    },
+    {
+      "input": "22622",
+      "expected": "5"
+    },
+    {
+      "input": "28933",
+      "expected": "5"
+    },
+    {
+      "input": "35244",
+      "expected": "5"
+    },
+    {
+      "input": "41555",
+      "expected": "5"
+    },
+    {
+      "input": "47866",
+      "expected": "5"
+    },
+    {
+      "input": "54177",
+      "expected": "5"
+    },
+    {
+      "input": "60488",
+      "expected": "5"
+    },
+    {
+      "input": "66799",
+      "expected": "5"
+    },
+    {
+      "input": "73110",
+      "expected": "5"
+    },
+    {
+      "input": "79421",
+      "expected": "5"
+    },
+    {
+      "input": "85732",
+      "expected": "5"
+    },
+    {
+      "input": "92043",
+      "expected": "5"
+    },
+    {
+      "input": "98354",
+      "expected": "5"
+    },
+    {
+      "input": "100000",
+      "expected": "6"
+    },
+    {
+      "input": "163112",
+      "expected": "6"
+    },
+    {
+      "input": "226224",
+      "expected": "6"
+    },
+    {
+      "input": "289336",
+      "expected": "6"
+    },
+    {
+      "input": "352448",
+      "expected": "6"
+    },
+    {
+      "input": "415560",
+      "expected": "6"
+    },
+    {
+      "input": "478672",
+      "expected": "6"
+    },
+    {
+      "input": "541784",
+      "expected": "6"
+    },
+    {
+      "input": "604896",
+      "expected": "6"
+    },
+    {
+      "input": "668008",
+      "expected": "6"
+    },
+    {
+      "input": "731120",
+      "expected": "6"
+    },
+    {
+      "input": "794232",
+      "expected": "6"
+    },
+    {
+      "input": "857344",
+      "expected": "6"
+    },
+    {
+      "input": "920456",
+      "expected": "6"
+    },
+    {
+      "input": "983568",
+      "expected": "6"
+    },
+    {
+      "input": "1000000",
+      "expected": "7"
+    },
+    {
+      "input": "1631124",
+      "expected": "7"
+    },
+    {
+      "input": "2262248",
+      "expected": "7"
+    },
+    {
+      "input": "2893372",
+      "expected": "7"
+    },
+    {
+      "input": "3524496",
+      "expected": "7"
+    },
+    {
+      "input": "4155620",
+      "expected": "7"
+    },
+    {
+      "input": "4786744",
+      "expected": "7"
+    },
+    {
+      "input": "5417868",
+      "expected": "7"
+    },
+    {
+      "input": "6048992",
+      "expected": "7"
+    },
+    {
+      "input": "6680116",
+      "expected": "7"
+    },
+    {
+      "input": "7311240",
+      "expected": "7"
+    },
+    {
+      "input": "7942364",
+      "expected": "7"
+    },
+    {
+      "input": "8573488",
+      "expected": "7"
+    },
+    {
+      "input": "9204612",
+      "expected": "7"
+    },
+    {
+      "input": "9835736",
+      "expected": "7"
+    },
+    {
+      "input": "10000000",
+      "expected": "8"
+    },
+    {
+      "input": "16311245",
+      "expected": "8"
+    },
+    {
+      "input": "22622490",
+      "expected": "8"
+    },
+    {
+      "input": "28933735",
+      "expected": "8"
+    },
+    {
+      "input": "35244980",
+      "expected": "8"
+    },
+    {
+      "input": "41556225",
+      "expected": "8"
+    },
+    {
+      "input": "47867470",
+      "expected": "8"
+    },
+    {
+      "input": "54178715",
+      "expected": "8"
+    },
+    {
+      "input": "60489960",
+      "expected": "8"
+    },
+    {
+      "input": "66801205",
+      "expected": "8"
+    },
+    {
+      "input": "73112450",
+      "expected": "8"
+    },
+    {
+      "input": "79423695",
+      "expected": "8"
+    },
+    {
+      "input": "85734940",
+      "expected": "8"
+    },
+    {
+      "input": "92046185",
+      "expected": "8"
+    },
+    {
+      "input": "98357430",
+      "expected": "8"
+    },
+    {
+      "input": "100000000",
+      "expected": "9"
+    },
+    {
+      "input": "163112457",
+      "expected": "9"
+    },
+    {
+      "input": "226224914",
+      "expected": "9"
+    },
+    {
+      "input": "289337371",
+      "expected": "9"
+    },
+    {
+      "input": "352449828",
+      "expected": "9"
+    },
+    {
+      "input": "415562285",
+      "expected": "9"
+    },
+    {
+      "input": "478674742",
+      "expected": "9"
+    },
+    {
+      "input": "541787199",
+      "expected": "9"
+    },
+    {
+      "input": "604899656",
+      "expected": "9"
+    },
+    {
+      "input": "668012113",
+      "expected": "9"
+    },
+    {
+      "input": "731124570",
+      "expected": "9"
+    },
+    {
+      "input": "794237027",
+      "expected": "9"
+    },
+    {
+      "input": "857349484",
+      "expected": "9"
+    },
+    {
+      "input": "920461941",
+      "expected": "9"
+    },
+    {
+      "input": "983574398",
+      "expected": "9"
+    },
+    {
+      "input": "1000000000",
+      "expected": "10"
+    },
+    {
+      "input": "1112457813",
+      "expected": "10"
+    },
+    {
+      "input": "1224915626",
+      "expected": "10"
+    },
+    {
+      "input": "1337373439",
+      "expected": "10"
+    },
+    {
+      "input": "1449831252",
+      "expected": "10"
+    },
+    {
+      "input": "1562289065",
+      "expected": "10"
+    },
+    {
+      "input": "1674746878",
+      "expected": "10"
+    },
+    {
+      "input": "1787204691",
+      "expected": "10"
+    },
+    {
+      "input": "1899662504",
+      "expected": "10"
+    },
+    {
+      "input": "2012120317",
+      "expected": "10"
+    },
+    {
+      "input": "2124578130",
+      "expected": "10"
+    },
+    {
+      "input": "2147483647",
+      "expected": "10"
+    },
+    {
+      "input": "999999999",
+      "expected": "9"
+    }
+  ],
+  "complexity": [
+    "O(log N)",
+    "O(1)"
+  ],
+  "companies": [
+    "Google",
+    "Amazon",
+    "Microsoft"
+  ],
+  "frequency": 10
+}
 ];
