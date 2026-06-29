@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { Activity, ArrowLeft, BookOpen, Bug, CheckCircle2, Clock, Play, RotateCw, Send, Tag, Trophy } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { DIFFICULTY_COLORS, RANK_COLORS, getProblemBySlug, PROBLEMS } from '../data/problems';
+import { DIFFICULTY_COLORS, RANK_COLORS, getProblemBySlug } from '../data/problems';
 import { analyzeError, analyzeComplexity } from '../data/debugPatterns';
 import LanguageDropdown from './LanguageDropdown';
 import LearnModal from './LearnModal';
@@ -108,43 +108,22 @@ export default function ProblemSolve() {
         // Premium sequence of success feedback
         toast.success(`Accepted! Great job on ${problem.title}!`, { icon: '🏆', duration: 4000 });
         
-        const currentIndex = PROBLEMS.findIndex((p) => p.id === problem.id);
-        const nextProblem = PROBLEMS[currentIndex + 1];
-
         setTimeout(() => {
-          if (nextProblem) {
-            toast(`+${problem.xp} XP Earned. Moving to next problem: ${nextProblem.title}...`, { 
-              icon: '⚡',
-              duration: 3000,
-              style: {
-                background: '#0a0a0f',
-                color: '#00f0ff',
-                border: '1px solid #00f0ff33',
-                fontSize: '13px',
-                fontWeight: '600'
-              }
-            });
-          } else {
-            toast(`+${problem.xp} XP Earned. Moving to Problems Arena...`, { 
-              icon: '⚡',
-              duration: 3000,
-              style: {
-                background: '#0a0a0f',
-                color: '#00f0ff',
-                border: '1px solid #00f0ff33',
-                fontSize: '13px',
-                fontWeight: '600'
-              }
-            });
-          }
+          toast(`+${problem.xp} XP Earned. Moving to Problems Arena...`, { 
+            icon: '⚡',
+            duration: 3000,
+            style: {
+              background: '#0a0a0f',
+              color: '#00f0ff',
+              border: '1px solid #00f0ff33',
+              fontSize: '13px',
+              fontWeight: '600'
+            }
+          });
         }, 1000);
 
         setTimeout(() => {
-          if (nextProblem) {
-            navigate(`/problems/${nextProblem.id}`);
-          } else {
-            navigate('/problems');
-          }
+          navigate('/problems');
         }, 4000);
       }
     } else if (results.length === expectedTestCount) {
