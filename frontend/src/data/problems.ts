@@ -46,7 +46,7 @@ export const ALL_TOPICS: Topic[] = [
   'stacks', 'queues', 'linked lists', 'trees', 'BST', 'heaps', 'tries', 'graphs', 'greedy',
   'dynamic programming', 'bit manipulation', 'sliding window', 'two pointers', 'prefix sum',
   'monotonic stack', 'binary search on answer', 'union find', 'shortest path', 'topological sort',
-  'advanced interview patterns',
+  'advanced interview patterns', 'oop', 'exceptions', 'file handling', 'modules', 'iterators', 'practical',
 ];
 
 export const DIFFICULTIES: Difficulty[] = ['Basic', 'Beginner', 'Intermediate', 'Advanced', 'Expert', 'Master'];
@@ -63,8 +63,72 @@ function starterCode(title: string, goal: string): Record<SupportedLanguage, str
   };
 }
 
+function inferModule(seed: ProblemSeed): number {
+  if (seed.module) return seed.module;
+  const t = seed.topic;
+  const title = seed.title.toLowerCase();
+  const slug = seed.slug.toLowerCase();
+  
+  if (t === 'input/output' || t === 'variables') return 1;
+  if (t === 'operators') {
+    if (title.includes('xor') || title.includes('bitwise') || title.includes('set bit')) return 2;
+    return 1;
+  }
+  if (t === 'conditionals') return 3;
+  if (t === 'patterns') return 4;
+  if (t === 'loops' || t === 'nested loops') {
+    if (title.includes('pattern') || title.includes('pyramid') || title.includes('triangle') || title.includes('diamond') || title.includes('hollow') || title.includes('floyd') || title.includes('pascal')) return 4;
+    if (title.includes('prime') || title.includes('fibonacci') || title.includes('factorial') || title.includes('palindrome') || title.includes('armstrong') || title.includes('digit') || title.includes('gcd') || title.includes('lcm') || title.includes('perfect number') || title.includes('strong number') || title.includes('root') || title.includes('divisor') || title.includes('reverse digit')) return 5;
+    return 4;
+  }
+  if (t === 'strings') return 6;
+  if (t === 'oop') return 11;
+  if (t === 'exceptions') return 12;
+  if (t === 'file handling') return 13;
+  if (t === 'modules') return 14;
+  if (t === 'iterators') return 15;
+  if (t === 'practical') return 18;
+  if (t === 'functions') return 9;
+  if (t === 'recursion' || t === 'backtracking') return 10;
+  if (t === 'hashing') {
+    if (slug === 'two-sum-hash-map' || slug === 'contains-duplicate') return 8;
+    return 17;
+  }
+  if (t === 'arrays' || t === 'matrices') {
+    // Check if it's foundational
+    if (slug === 'transpose-matrix' || slug === 'matrix-multiplication' || slug === 'reverse-an-array' || slug === 'maximum-subarray-kadane' || slug === 'maximum-in-array' || slug === 'minimum-in-array' || slug === 'second-largest-distinct') {
+      return 16;
+    }
+    return 7; // standard lists & tuples
+  }
+  
+  // Foundational DSA topics: basic implementations
+  const foundationalSlugs = [
+    'linear-search-finder', 'binary-search-finder', 
+    'bubble-sort-lab', 'selection-sort-lab', 'insertion-sort-cards', 
+    'merge-sort-splitter', 'quick-sort-pivot',
+    'valid-parentheses-stack', 'valid-parentheses-check', 'valid-parentheses',
+    'build-a-linked-list', 'reverse-linked-list',
+    'two-pointer-pair-sum', 'maximum-sum-window-k',
+    'transpose-matrix', 'matrix-row-sum', 'matrix-diagonal-sum'
+  ];
+  if (foundationalSlugs.includes(slug)) {
+    return 16;
+  }
+  
+  if (['sorting', 'searching', 'stacks', 'queues', 'linked lists'].includes(t)) {
+    if (slug.includes('implementation') || slug.includes('basics') || slug.includes('reverse-linked-list') || slug.includes('bubble') || slug.includes('selection') || slug.includes('insertion') || slug.includes('linear-search') || slug.includes('binary-search')) {
+      return 16;
+    }
+  }
+
+  // The rest of the intermediate/advanced DSA topics map to Module 17
+  return 17;
+}
+
 function buildProblem(seed: ProblemSeed, index: number): Problem {
   const example = seed.tests[0];
+  const mod = inferModule(seed);
   return {
     id: seed.slug,
     title: seed.title,
@@ -115,17 +179,50 @@ function buildProblem(seed: ProblemSeed, index: number): Problem {
     ],
     starterCode: starterCode(seed.title, seed.shortGoal),
     xp: DIFFICULTY_XP[seed.difficulty],
-    order: index + 1,
+    order: seed.order || (index + 1),
+    module: mod,
   };
 }
 
 export const PROBLEMS: Problem[] = seeds.map(buildProblem);
 
-export const LEARNING_PATHS = RANK_TIERS.map((rankTier) => ({
-  stage: `${rankTier} League`,
-  icon: rankTier === 'Beginner' ? '01' : rankTier === 'Silver' ? '02' : rankTier === 'Gold' ? '03' : rankTier === 'Platinum' ? '04' : rankTier === 'Diamond' ? '05' : rankTier === 'Master' ? '06' : rankTier === 'Grandmaster' ? '07' : '08',
-  problems: PROBLEMS.filter((problem) => problem.rankTier === rankTier).map((problem) => problem.id),
-}));
+const MODULE_NAMES: Record<number, string> = {
+  1: 'Module 1 — Python Basics: Variables, I/O & Data Types',
+  2: 'Module 2 — Operators & Expressions',
+  3: 'Module 3 — Control Flow (if / elif / else)',
+  4: 'Module 4 — Loops & Pattern Printing',
+  5: 'Module 5 — Classic Numeric Interview Problems',
+  6: 'Module 6 — Strings & Slicing',
+  7: 'Module 7 — Lists & Tuples',
+  8: 'Module 8 — Sets & Dictionaries',
+  9: 'Module 9 — Functions, Scope & Functional Tools',
+  10: 'Module 10 — Recursion',
+  11: 'Module 11 — Object-Oriented Programming',
+  12: 'Module 12 — Exception Handling',
+  13: 'Module 13 — File Handling',
+  14: 'Module 14 — Modules, Packages & Comprehensions',
+  15: 'Module 15 — Iterators, Generators & Decorators',
+  16: 'Module 16 — Foundational Data Structures & Algorithms',
+  17: 'Module 17 — Company Coding-Round Rapid-Fire Set',
+  18: 'Module 18 — Practical Extras',
+};
+
+const MODULE_ICONS: Record<number, string> = {
+  1: '01', 2: '02', 3: '03', 4: '04', 5: '05', 6: '06',
+  7: '07', 8: '08', 9: '09', 10: '10', 11: '11', 12: '12',
+  13: '13', 14: '14', 15: '15', 16: '16', 17: '17', 18: '18',
+};
+
+export const LEARNING_PATHS = Array.from({ length: 18 }, (_, i) => {
+  const modNum = i + 1;
+  const moduleProblems = PROBLEMS.filter((p) => p.module === modNum);
+  moduleProblems.sort((a, b) => a.order - b.order);
+  return {
+    stage: MODULE_NAMES[modNum],
+    icon: MODULE_ICONS[modNum],
+    problems: moduleProblems.map((p) => p.id),
+  };
+});
 
 export function getProblemBySlug(slug?: string) {
   return PROBLEMS.find((problem) => problem.slug === slug || problem.id === slug);

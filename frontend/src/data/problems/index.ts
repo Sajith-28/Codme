@@ -7,6 +7,9 @@ import { dpAdvancedSeeds } from './dp-advanced';
 import { linkedListsStacksSeeds } from './linkedlists-stacks';
 import { intervalsGreedyBitsSeeds } from './intervals-greedy-bits';
 import { beginnerExtraSeeds } from './beginner-extra';
+import { curriculumGapSeeds } from './curriculum-gaps';
+import { fileModulesExtrasSeeds } from './file-modules-extras';
+import { oopExceptionsSeeds } from './oop-exceptions';
 
 /**
  * CODME Problem Bank — Modular Index
@@ -52,12 +55,15 @@ const DIFF_ORDER: Record<string, number> = {
 // Collect all expansion seeds (everything except initial)
 const expansionSeeds: ProblemSeed[] = [
   ...beginnerExtraSeeds,
+  ...curriculumGapSeeds,
   ...arraySeeds,
   ...stringsAdvancedSeeds,
   ...treesGraphsSeeds,
   ...dpAdvancedSeeds,
   ...linkedListsStacksSeeds,
   ...intervalsGreedyBitsSeeds,
+  ...fileModulesExtrasSeeds,
+  ...oopExceptionsSeeds,
 ];
 
 // Remove duplicates (by slug) — initial seeds take priority

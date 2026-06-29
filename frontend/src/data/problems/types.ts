@@ -38,7 +38,13 @@ export type Topic =
   | 'union find'
   | 'shortest path'
   | 'topological sort'
-  | 'advanced interview patterns';
+  | 'advanced interview patterns'
+  | 'oop'
+  | 'exceptions'
+  | 'file handling'
+  | 'modules'
+  | 'iterators'
+  | 'practical';
 
 export interface TestCase {
   input: string;
@@ -63,6 +69,8 @@ export type ProblemSeed = {
   frequency?: number;
   edgeCases?: string[];
   mistakes?: string[];
+  module?: number;
+  order?: number;
 };
 
 export interface Problem {
@@ -103,4 +111,5 @@ export interface Problem {
   starterCode: Record<SupportedLanguage, string>;
   xp: number;
   order: number;
+  module: number;
 }
