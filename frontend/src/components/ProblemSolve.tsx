@@ -14,7 +14,7 @@ import AITutor from './AITutor';
 import { markSolved } from '../utils/progress';
 import { loadCode, saveCode, loadLastResults, saveLastResults } from '../utils/persistence';
 
-const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-backend.onrender.com';
+const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-1.onrender.com';
 const monacoLangMap: Record<string, string> = { java: 'java', python: 'python', c: 'c', cpp: 'cpp' };
 
 type TestRunResult = {
