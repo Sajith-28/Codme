@@ -243,7 +243,7 @@ export default function ProblemSolve() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full overflow-x-hidden overflow-y-auto bg-[#080a10] text-white md:h-screen md:w-screen md:overflow-hidden">
+    <div key={id} className="min-h-[100dvh] w-full overflow-x-hidden overflow-y-auto bg-[#080a10] text-white md:h-screen md:w-screen md:overflow-hidden">
       <header className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-white/5 px-3 py-2 md:px-4">
         <div className="flex min-w-0 items-center gap-3">
           <button onClick={() => navigate('/problems')} className="icon-button" title="Back to roadmap">
