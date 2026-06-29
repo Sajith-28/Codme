@@ -62,8 +62,8 @@ export default function ProblemsPage() {
   const summary = useMemo(() => summarizeProgress(progress), [progress]);
 
   const filtered = useMemo(() => {
-    return PROBLEMS.filter((problem, index) => {
-      const unlocked = index === 0 || summary.solvedSet.has(PROBLEMS[index - 1].id) || summary.solvedSet.has(problem.id);
+    return PROBLEMS.filter((problem) => {
+      const unlocked = true;
       
       // Mode-specific filtering
       if (mode === 'revision') {
@@ -310,9 +310,8 @@ function ProblemGrid({ problems, summary, onLearn, onRefresh }: { problems: Prob
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 [perspective:2000px] mt-6 pb-20">
       {problems.map((problem) => {
-        const index = PROBLEMS.findIndex((item) => item.id === problem.id);
         const solved = summary.solvedSet.has(problem.id);
-        const unlocked = index === 0 || summary.solvedSet.has(PROBLEMS[index - 1].id) || solved;
+        const unlocked = true;
         const bookmarked = summary.bookmarkedSet.has(problem.id);
         const favorite = summary.favoriteSet.has(problem.id);
         return (
