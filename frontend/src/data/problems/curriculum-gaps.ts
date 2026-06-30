@@ -23,7 +23,7 @@ export const curriculumGapSeeds: ProblemSeed[] = [
     hiddenTests: [
       { input: '1000 10 1', expected: '100.00' },
       { input: '10000 8 5', expected: '4693.28' },
-      { input: '1500 12 4', expected: '860.95' },
+      { input: '1500 12 4', expected: '860.28' },
       { input: '2000 0 3', expected: '0.00' },
       { input: '100 100 1', expected: '100.00' },
     ],
