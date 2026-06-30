@@ -69,6 +69,7 @@ export type ProblemSeed = {
   frequency?: number;
   edgeCases?: string[];
   mistakes?: string[];
+  starterCode?: Record<SupportedLanguage, string>;
   module?: number;
   order?: number;
 };

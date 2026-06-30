@@ -177,7 +177,7 @@ function buildProblem(seed: ProblemSeed, index: number): Problem {
       'Use standard input and standard output only.',
       'Prefer the optimized approach after the brute-force idea is clear.',
     ],
-    starterCode: starterCode(seed.title, seed.shortGoal),
+    starterCode: seed.starterCode || starterCode(seed.title, seed.shortGoal),
     xp: DIFFICULTY_XP[seed.difficulty],
     order: seed.order || (index + 1),
     module: mod,
