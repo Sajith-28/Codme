@@ -4,14 +4,16 @@ import { useStore } from '../store/useStore';
 import { X, Lock, Mail, User, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { apiBase } from '../utils/config';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isLoginDefault?: boolean;
 }
 
-export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
-  const [isLogin, setIsLogin] = useState(true);
+export default function AuthModal({ isOpen, onClose, isLoginDefault = true }: AuthModalProps) {
+  const [isLogin, setIsLogin] = useState(isLoginDefault);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,7 +22,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   
   const { setToken } = useStore();
   const navigate = useNavigate();
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://codme-1.onrender.com';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -13,8 +13,8 @@ import LearnModal from './LearnModal';
 import AITutor from './AITutor';
 import { markSolved } from '../utils/progress';
 import { loadCode, saveCode, loadLastResults, saveLastResults } from '../utils/persistence';
+import { wsBase } from '../utils/config';
 
-const wsBase = import.meta.env.VITE_WS_URL || 'wss://codme-1.onrender.com';
 const monacoLangMap: Record<string, string> = { java: 'java', python: 'python', c: 'c', cpp: 'cpp' };
 
 type TestRunResult = {
@@ -239,6 +239,19 @@ export default function ProblemSolve() {
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <LanguageDropdown value={language} onChange={(value) => useStore.getState().setLanguage(value)} />
+          <button 
+            onClick={() => {
+              if (window.confirm('Reset the editor to the starter template? Your current code for this language will be lost.')) {
+                setCode(problem.starterCode[language]);
+                saveCode(problem.id, language, problem.starterCode[language]);
+                toast.success('Reset editor to starter template');
+              }
+            }} 
+            className="tool-button gap-1.5 px-3 text-xs"
+            title="Reset code to starter template"
+          >
+            <RotateCw className="h-3.5 w-3.5" /> Reset
+          </button>
           <button onClick={() => setLearnOpen(true)} className="tool-button gap-1.5 px-3 text-xs">
             <BookOpen className="h-3.5 w-3.5" /> Learn
           </button>

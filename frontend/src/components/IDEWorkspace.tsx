@@ -40,6 +40,7 @@ import { languageDefaults, useStore } from '../store/useStore';
 import type { SupportedLanguage } from '../store/useStore';
 import { analyzeError } from '../data/debugPatterns';
 import LanguageDropdown from './LanguageDropdown';
+import { apiBase, wsBase } from '../utils/config';
 
 type ProjectFile = {
   id: string;
@@ -88,8 +89,6 @@ type ExecutionMessage = {
 
 const projectStorageKeyBase = 'codme_project_v1';
 const resultPanelWidthKey = 'codme_result_panel_width';
-const apiBase = (import.meta.env.VITE_API_BASE_URL || 'https://codme-1.onrender.com').replace(/\/$/, '');
-const wsBase = (import.meta.env.VITE_WS_URL || apiBase.replace(/^http/, 'ws')).replace(/\/$/, '');
 
 const languageMeta: Record<SupportedLanguage, { label: string; extension: string; mainFile: string; monaco: string }> = {
   java: { label: 'Java', extension: '.java', mainFile: 'Main.java', monaco: 'java' },
