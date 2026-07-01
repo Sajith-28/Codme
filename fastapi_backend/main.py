@@ -7,6 +7,7 @@ from jose import jwt, JWTError
 from pydantic import BaseModel
 from typing import Optional, List
 import json
+import os
 
 app = FastAPI(title="CODME API")
 
@@ -56,11 +57,20 @@ async def health_check():
         and runtime["gpp"]
     )
     ready = required_runtimes_ready and database["healthy"]
+    
+    # Check if SMTP is configured
+    smtp_configured = bool(
+        os.environ.get("SMTP_HOST") 
+        and os.environ.get("SMTP_USER") 
+        and os.environ.get("SMTP_PASSWORD")
+    )
+    
     return {
         "status": "ok" if ready else "degraded",
         "message": "CODME Backend Operational",
         "database": database,
         "runtime": runtime,
+        "smtp_configured": smtp_configured,
     }
 
 
