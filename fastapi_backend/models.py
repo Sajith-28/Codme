@@ -46,3 +46,51 @@ class ActivityCreate(BaseModel):
     code: str
     status: str
     execution_time: Optional[float] = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.lower().strip()
+        if not EMAIL_PATTERN.match(email):
+            raise ValueError("Must be a valid email address")
+        return email
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    reset_code: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=8, description="Password must be at least 8 characters long")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.lower().strip()
+        if not EMAIL_PATTERN.match(email):
+            raise ValueError("Must be a valid email address")
+        return email
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.lower().strip()
+        if not EMAIL_PATTERN.match(email):
+            raise ValueError("Must be a valid email address")
+        return email
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    reset_code: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=8, description="Password must be at least 8 characters long")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.lower().strip()
+        if not EMAIL_PATTERN.match(email):
+            raise ValueError("Must be a valid email address")
+        return email

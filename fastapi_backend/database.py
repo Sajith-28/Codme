@@ -66,6 +66,25 @@ class JsonCollection:
         await self._write(records)
         return SimpleNamespace(inserted_id=item["_id"])
 
+    async def update_one(self, query: dict, update: dict):
+        records = await self._read()
+        for i, record in enumerate(records):
+            if all(record.get(key) == value for key, value in query.items()):
+                if "$set" in update:
+                    records[i].update(update["$set"])
+                await self._write(records)
+                return SimpleNamespace(modified_count=1)
+        return SimpleNamespace(modified_count=0)
+
+    async def delete_one(self, query: dict):
+        records = await self._read()
+        for i, record in enumerate(records):
+            if all(record.get(key) == value for key, value in query.items()):
+                records.pop(i)
+                await self._write(records)
+                return SimpleNamespace(deleted_count=1)
+        return SimpleNamespace(deleted_count=0)
+
 
 class ResilientCollection:
     def __init__(self, mongo_collection, fallback_collection: JsonCollection):
@@ -87,6 +106,22 @@ class ResilientCollection:
             except Exception as exc:
                 use_local_storage(f"MongoDB write failed: {exc}")
         return await self.fallback_collection.insert_one(document)
+
+    async def update_one(self, query: dict, update: dict):
+        if storage_status["mode"] == "mongodb":
+            try:
+                return await asyncio.wait_for(self.mongo_collection.update_one(query, update), timeout=1.2)
+            except Exception as exc:
+                use_local_storage(f"MongoDB update failed: {exc}")
+        return await self.fallback_collection.update_one(query, update)
+
+    async def delete_one(self, query: dict):
+        if storage_status["mode"] == "mongodb":
+            try:
+                return await asyncio.wait_for(self.mongo_collection.delete_one(query), timeout=1.2)
+            except Exception as exc:
+                use_local_storage(f"MongoDB delete failed: {exc}")
+        return await self.fallback_collection.delete_one(query)
 
 
 def use_local_storage(message: str):
@@ -116,3 +151,4 @@ def get_storage_status():
 
 users_collection = ResilientCollection(db.get_collection("users"), JsonCollection("users"))
 activities_collection = ResilientCollection(db.get_collection("activities"), JsonCollection("activities"))
+password_resets_collection = ResilientCollection(db.get_collection("password_resets"), JsonCollection("password_resets"))
