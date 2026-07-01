@@ -8,6 +8,7 @@ from database import users_collection, password_resets_collection
 import os
 import secrets
 from dotenv import load_dotenv
+from email_service import send_reset_email
 
 load_dotenv()
 
@@ -114,10 +115,13 @@ async def forgot_password(request: ForgotPasswordRequest):
         await password_resets_collection.delete_one({"email": email_lower})
         await password_resets_collection.insert_one(reset_record)
 
-        # In production, send this code via email instead of returning it
+        # Attempt to send the reset email
+        email_sent = send_reset_email(email_lower, reset_code)
+
+        # If email was sent, don't expose the reset code to the frontend client
         return {
             "message": "If an account with that email exists, a reset code has been generated.",
-            "reset_code": reset_code,
+            "reset_code": None if email_sent else reset_code,
         }
     except Exception as e:
         print(f"Error during forgot-password: {str(e)}")
