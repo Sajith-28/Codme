@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useLayoutEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -50,13 +50,96 @@ export default function ProblemsPage() {
   const navigate = useNavigate();
   const { language, token } = useStore();
   const [, setProgressVersion] = useState(0);
-  const [query, setQuery] = useState('');
-  const [diffFilter, setDiffFilter] = useState<Difficulty | 'all'>('all');
-  const [topicFilter, setTopicFilter] = useState<Topic | 'all'>('all');
-  const [rankFilter, setRankFilter] = useState<RankTier | 'all'>('all');
-  const [companyFilter, setCompanyFilter] = useState<string | 'all'>('all');
-  const [mode, setMode] = useState<ViewMode>('roadmap');
+
+  const [isBackFromProblem] = useState(() => {
+    const prevPath = sessionStorage.getItem('codme_prev_path');
+    return !!(prevPath && prevPath.startsWith('/problems/'));
+  });
+
+  const getSessionValue = <T,>(key: string, defaultValue: T): T => {
+    if (!isBackFromProblem) {
+      sessionStorage.removeItem(key);
+      return defaultValue;
+    }
+    const val = sessionStorage.getItem(key);
+    return val !== null ? (val as unknown as T) : defaultValue;
+  };
+
+  const [query, setQuery] = useState(() => getSessionValue('problems_filter_query', ''));
+  const [diffFilter, setDiffFilter] = useState<Difficulty | 'all'>(() => getSessionValue('problems_filter_diff', 'all' as Difficulty | 'all'));
+  const [topicFilter, setTopicFilter] = useState<Topic | 'all'>(() => getSessionValue('problems_filter_topic', 'all' as Topic | 'all'));
+  const [rankFilter, setRankFilter] = useState<RankTier | 'all'>(() => getSessionValue('problems_filter_rank', 'all' as RankTier | 'all'));
+  const [companyFilter, setCompanyFilter] = useState<string | 'all'>(() => getSessionValue('problems_filter_company', 'all'));
+  const [mode, setMode] = useState<ViewMode>(() => getSessionValue('problems_filter_mode', 'roadmap' as ViewMode));
   const [learnProblem, setLearnProblem] = useState<Problem | null>(null);
+
+  // Save filters to sessionStorage when they change
+  useEffect(() => {
+    sessionStorage.setItem('problems_filter_query', query);
+  }, [query]);
+
+  useEffect(() => {
+    sessionStorage.setItem('problems_filter_diff', diffFilter);
+  }, [diffFilter]);
+
+  useEffect(() => {
+    sessionStorage.setItem('problems_filter_topic', topicFilter);
+  }, [topicFilter]);
+
+  useEffect(() => {
+    sessionStorage.setItem('problems_filter_rank', rankFilter);
+  }, [rankFilter]);
+
+  useEffect(() => {
+    sessionStorage.setItem('problems_filter_company', companyFilter);
+  }, [companyFilter]);
+
+  useEffect(() => {
+    sessionStorage.setItem('problems_filter_mode', mode);
+  }, [mode]);
+
+  // Save scroll position on scroll
+  useEffect(() => {
+    let timeoutId: number;
+    const handleScroll = () => {
+      if (timeoutId) {
+        window.cancelAnimationFrame(timeoutId);
+      }
+      timeoutId = window.requestAnimationFrame(() => {
+        sessionStorage.setItem('scroll_problems', window.scrollY.toString());
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (timeoutId) {
+        window.cancelAnimationFrame(timeoutId);
+      }
+    };
+  }, []);
+
+  // Restore scroll position on mount/layout
+  useLayoutEffect(() => {
+    if (isBackFromProblem) {
+      const savedScroll = sessionStorage.getItem('scroll_problems');
+      if (savedScroll) {
+        const scrollY = parseInt(savedScroll, 10);
+        if (!isNaN(scrollY)) {
+          window.scrollTo(0, scrollY);
+          
+          // Fallback check/retry for animations or layout updates
+          const timer = setTimeout(() => {
+            window.scrollTo(0, scrollY);
+          }, 50);
+          return () => clearTimeout(timer);
+        }
+      }
+    } else {
+      // Clear saved scroll and scroll to top on fresh entry
+      sessionStorage.removeItem('scroll_problems');
+      window.scrollTo(0, 0);
+    }
+  }, [isBackFromProblem]);
 
   const progress = loadProgress();
   const summary = useMemo(() => summarizeProgress(progress), [progress]);

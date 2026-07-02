@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -10,6 +10,23 @@ const ProblemsPage = lazy(() => import('./components/ProblemsPage'));
 const ProblemSolve = lazy(() => import('./components/ProblemSolve'));
 
 function AppContent() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const storedCurrent = sessionStorage.getItem('codme_current_path');
+    if (storedCurrent && storedCurrent !== currentPath) {
+      sessionStorage.setItem('codme_prev_path', storedCurrent);
+    }
+    sessionStorage.setItem('codme_current_path', currentPath);
+  }, [location.pathname]);
+
   return (
     <div className="min-h-[100dvh] bg-background text-white font-sans overflow-x-hidden relative">
       <Toaster
