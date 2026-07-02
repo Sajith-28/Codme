@@ -18,14 +18,15 @@ function AppContent() {
     }
   }, []);
 
-  useEffect(() => {
-    const currentPath = location.pathname;
-    const storedCurrent = sessionStorage.getItem('codme_current_path');
-    if (storedCurrent && storedCurrent !== currentPath) {
-      sessionStorage.setItem('codme_prev_path', storedCurrent);
-    }
+  // Update path transitions synchronously in render phase to avoid parent-child race conditions
+  const currentPath = location.pathname;
+  const storedCurrent = sessionStorage.getItem('codme_current_path');
+  if (storedCurrent && storedCurrent !== currentPath) {
+    sessionStorage.setItem('codme_prev_path', storedCurrent);
     sessionStorage.setItem('codme_current_path', currentPath);
-  }, [location.pathname]);
+  } else if (!storedCurrent) {
+    sessionStorage.setItem('codme_current_path', currentPath);
+  }
 
   return (
     <div className="min-h-[100dvh] bg-background text-white font-sans overflow-x-hidden relative">

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useLayoutEffect } from 'react';
+import { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -98,15 +98,20 @@ export default function ProblemsPage() {
     sessionStorage.setItem('problems_filter_mode', mode);
   }, [mode]);
 
+  const lastScrollY = useRef(0);
+
   // Save scroll position on scroll
   useEffect(() => {
     let timeoutId: number;
     const handleScroll = () => {
+      const currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      lastScrollY.current = currentScroll;
+
       if (timeoutId) {
         window.cancelAnimationFrame(timeoutId);
       }
       timeoutId = window.requestAnimationFrame(() => {
-        sessionStorage.setItem('scroll_problems', window.scrollY.toString());
+        sessionStorage.setItem('scroll_problems', currentScroll.toString());
       });
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -115,6 +120,8 @@ export default function ProblemsPage() {
       if (timeoutId) {
         window.cancelAnimationFrame(timeoutId);
       }
+      // Guarantee last known scroll is saved on unmount (ignoring any subsequent collapsing scroll events)
+      sessionStorage.setItem('scroll_problems', lastScrollY.current.toString());
     };
   }, []);
 
@@ -125,13 +132,19 @@ export default function ProblemsPage() {
       if (savedScroll) {
         const scrollY = parseInt(savedScroll, 10);
         if (!isNaN(scrollY)) {
+          // Attempt instant scroll
           window.scrollTo(0, scrollY);
           
-          // Fallback check/retry for animations or layout updates
-          const timer = setTimeout(() => {
+          // Poll scroll position restoration over a 1000ms window to handle dynamic layout / Framer motion / lazy route rendering
+          const startTime = Date.now();
+          const interval = setInterval(() => {
             window.scrollTo(0, scrollY);
-          }, 50);
-          return () => clearTimeout(timer);
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+            if (currentScroll >= scrollY || Date.now() - startTime > 1000) {
+              clearInterval(interval);
+            }
+          }, 30);
+          return () => clearInterval(interval);
         }
       }
     } else {
